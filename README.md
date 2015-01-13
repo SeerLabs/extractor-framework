@@ -4,7 +4,9 @@
 
 Example usage:
 
-```python
+```
+#!python
+
 # import require modules
 import extraction.runnables as runnables
 from extraction.core import ExtractionRunner
@@ -31,6 +33,7 @@ runner.add_extractor(TrimmedTextExtractor)
 
 xmlResults = runner.runFromFile('/path/to/pdf')
 
+```
 
 
 ## Running the unittests ##
