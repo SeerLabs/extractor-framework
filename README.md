@@ -16,14 +16,14 @@ class HasContentFilter(runnables.Filter):
    # All runnable classes and subclasses should specify their dependencies
    dependencies = []
 
-   def filter(self, data, dependencyResults):
+   def filter(self, data, dependency_results):
       return len(data) > 0
 
 class TrimmedTextExtractor(runnables.Extractor):
-   # only will be run in all filters in dependencies pass
+   # only will be run if all filters in  dependencies pass
    dependecies = [HasContentFilter]
 
-   def extract(self, data, dependencyResults):
+   def extract(self, data, dependency_results):
       return data[:-1]
 
 # Create and run the whole extraction process
@@ -31,7 +31,7 @@ runner = ExtractionRunner()
 runner.add_filter(HasContentFilter)
 runner.add_extractor(TrimmedTextExtractor)
 
-xmlResults = runner.runFromFile('/path/to/pdf')
+xmlResults = runner.run_from_file('/path/to/pdf')
 
 ```
 
