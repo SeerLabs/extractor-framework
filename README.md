@@ -12,17 +12,25 @@ import extraction.runnables as runnables
 from extraction.core import ExtractionRunner
 
 # define extractors and filters
-class HasContentFilter(runnables.Filter):
-   # All runnable classes and subclasses should specify their dependencies
-   dependencies = []
 
+# All filters extend the runnables.Filter class
+class HasContentFilter(runnables.Filter):
+
+   # override the filter method to define the actual logic
+   # filters should return a boolean for success
    def filter(self, data, dependency_results):
       return len(data) > 0
 
+# All extractors extend the runnables.Extractor class
 class TrimmedTextExtractor(runnables.Extractor):
-   # only will be run if all filters in  dependencies pass
-   dependecies = [HasContentFilter]
+   # If an extractor/filter depends on a previous result
+   # define a staticmethod that returns an array of dependencies
+   @staticmethod
+   def dependencies():
+      return [HasContentFilter]
 
+   # override the extract method to define extraction logic
+   # the extract method will probably return an xml string (TODO)
    def extract(self, data, dependency_results):
       return data[:-1]
 

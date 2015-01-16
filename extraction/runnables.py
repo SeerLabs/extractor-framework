@@ -1,9 +1,13 @@
 class Base(object):
+   @staticmethod
+   def dependencies():
+      return []
+
    def __init__(self):
       pass
 
    def check_dep_errors(self, dependency_results):
-      deps = self.__class__.dependencies
+      deps = self.__class__.dependencies()
       filter_deps = [e for e in deps if isinstance(e, Filter)]
       extractor_deps = [e for e in deps if isinstance(e, Extractor)]
 
@@ -24,7 +28,7 @@ class Filter(Base):
       return False
 
    def run(self, data, dependency_results):
-      dep_errors =  super(Filter, self).check_dep_errors()
+      dep_errors =  super(Filter, self).check_dep_errors(dependency_results)
       if dep_errors:
          return dep_errors
 
@@ -36,7 +40,7 @@ class Extractor(Base):
       return 'TODO'
 
    def run(self, data, dependency_results):
-      dep_errors = super(Extractor, self).check_dep_errors()
+      dep_errors = super(Extractor, self).check_dep_errors(dependency_results)
       if dep_errors:
          return dep_errors
 
