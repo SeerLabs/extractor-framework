@@ -1,11 +1,13 @@
 import unittest
 
-from extraction.test import test_all
+from extraction.test import test_core, test_runnables
 
 tests = unittest.TestLoader()
-test0 = tests.loadTestsFromModule(test_all)
+test_arr = []
+test_arr.append(tests.loadTestsFromModule(test_core))
+test_arr.append(tests.loadTestsFromModule(test_runnables))
 
-all_tests = unittest.TestSuite([test0])
+all_tests = unittest.TestSuite(test_arr)
 
 if __name__ == '__main__':
    unittest.TextTestRunner().run(all_tests)

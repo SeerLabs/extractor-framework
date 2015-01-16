@@ -9,5 +9,3 @@ class TestExtractionRunner(unittest.TestCase):
       runner = ExtractionRunner()
       self.assertFalse(runner is None)
 
-if __name__ == '__main__':
-   unittest.main()
