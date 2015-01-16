@@ -20,7 +20,7 @@ class ExtractionRunner(object):
    def run(self, data):
       results = {}
       for runnable in self.runnables:
-         dep_results = {k: v for k,v in results if k in runnable.dependencies}
+         dep_results = dict(filter(lambda k,v: k in runnable.dependencies, results))
          result = runnable.run(data, dep_results)
          results[runnable] = result
 
