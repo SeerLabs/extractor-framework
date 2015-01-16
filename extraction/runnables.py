@@ -23,6 +23,7 @@ class Base(object):
 
       return None
 
+
 class Filter(Base):
    def filter(self, data, dependency_results):
       return False
@@ -45,3 +46,10 @@ class Extractor(Base):
          return dep_errors
 
       return self.extract(data, dependency_results)   
+
+   def _xml_string_from_error(self, error_message):
+      return self._wrap_xml_content('<error>%s</error>' % error_message)
+
+   def _wrap_xml_content(self, xml_string):
+      return '<extractor type="%s">%s</extractor>' % (self.__class__.__name__, xml_string)
+      
