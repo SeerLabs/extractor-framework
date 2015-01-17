@@ -38,9 +38,10 @@ class TestRunnables(unittest.TestCase):
    def test_failing_filter_dep_means_extractor_doesnt_run(self):
       extractor = extractors.FailingDepsExtractor()
       filter = filters.FailFilter()
-      filter_result = filter.run('nothing', {})
+      filter_result = filter.run('nothing', {}, {})
       deps = {filters.FailFilter: filter_result}
-      extractor_result = extractor.run('nothing', deps)
+      dict_deps = {filters.FailFilter: xmltodict.parse(filter_result)}
+      extractor_result = extractor.run('nothing', deps, dict_deps)
       dict_result = xmltodict.parse(extractor_result)
       self.assertTrue('error' in dict_result['extractor'])
       self.assertFalse('result' in dict_result['extractor'])

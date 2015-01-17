@@ -1,3 +1,4 @@
+import extraction.xmltodict as xmltodict
 
 class ExtractionRunner(object):
    def __init__(self):
@@ -19,10 +20,15 @@ class ExtractionRunner(object):
       
    def run(self, data):
       results = {}
+      dict_results = {}
       for runnable in self.runnables:
-         dep_results = dict(filter(lambda k,v: k in runnable.dependencies, results))
-         result = runnable.run(data, dep_results)
+         dep_results = dict(filter(lambda k,v: k in runnable.dependencies(), results))
+         dict_dep_results = dict(filter(lambda k,v: k in runnable.dependecies(), dict_results))
+
+         result = runnable.run(data, dep_results, dict_dep_results)
+
          results[runnable] = result
+         dict_results[runnable] = xmltodict.parse(result)
 
       #TODO return xml string?
       return results

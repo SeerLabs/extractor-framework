@@ -20,7 +20,7 @@ class HasContentFilter(runnables.Filter):
    # filters should return an xml string indictating their result
    # there are three helper functions to generate this string
    # _filter_fail_result(), _filter_pass_result(), and _error_result(error_message)
-   def filter(self, data, dependency_results):
+   def filter(self, data, dep_results, dict_dep_results):
       if data:
          return self._filter_pass_result()
       else
@@ -38,7 +38,7 @@ class TrimmedTextExtractor(runnables.Extractor):
    # the extract method should return an xml string
    # there are two helper functions to do this
    # _extractor_result(result_xml) and _error_result(error_message)
-   def extract(self, data, dependency_results):
+   def extract(self, data, dep_results, dict_dep_results):
       return self._extractor_result(data[:-1])
 
 # Create and run the whole extraction process
