@@ -6,6 +6,7 @@ It's just a demo, so for example, the EmailExtractor is quite simplistic.
 from extraction.core import ExtractionRunner
 from extraction.runnables import Filter, Extractor
 import extraction.xmltodict as xmltodict
+import extraction.utils as utils
 import re
 import subprocess
 
@@ -36,11 +37,7 @@ class LinesStartWithNumberExtractor(Extractor):
       return [HasNumbersFilter]
 
    def extract(self, data, deps, dict_deps):
-      process = subprocess.Popen(['awk', '/^[0-9]/ {print;}', '-'],
-                        stdout=subprocess.PIPE,
-                        stdin=subprocess.PIPE,
-                        stderr=subprocess.PIPE)
-      (stdout, stderr) =  process.communicate(data)
+      (stdout, stderr) = utils.external_process(data, ['awk', '/^[0-9]/ {print;}', '-'])
       lines = [line for line in stdout.split("\n") if line]
       xml_result = xmltodict.unparse({'result': {'line': lines}}, full_document=False, pretty=True)
       return self._wrap_xml_content(xml_result)
@@ -50,6 +47,7 @@ extraction_runner = ExtractionRunner()
 extraction_runner.add_filter(HasNumbersFilter)
 extraction_runner.add_extractor(EmailExtractor)
 extraction_runner.add_extractor(LinesStartWithNumberExtractor)
+
 print extraction_runner.run(u'''Random data inputted with some emails bob@example.com
 523 And some more text with @ signs now and then. Meet you@home@2p.m.
       And some more stuff. howie009@yahoo.com
