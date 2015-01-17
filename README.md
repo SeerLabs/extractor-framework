@@ -50,6 +50,13 @@ xmlResults = runner.run_from_file('/path/to/pdf')
 
 ```
 
+## Sample Framework Usage ##
+For another example of usage, see extraction/test/sample.py
+
+Or, from the project root, you can run:
+
+    python -m extraction.test.sample
+
 
 ## Running the unittests ##
 

@@ -22,16 +22,21 @@ class ExtractionRunner(object):
       results = {}
       dict_results = {}
       for runnable in self.runnables:
-         dep_results = dict(filter(lambda k,v: k in runnable.dependencies(), results))
-         dict_dep_results = dict(filter(lambda k,v: k in runnable.dependecies(), dict_results))
+         dep_results = dict(filter(lambda (k,v): k in runnable.dependencies(), results.items()))
+         dict_dep_results = dict(filter(lambda (k,v): k in runnable.dependencies(), dict_results.items()))
 
-         result = runnable.run(data, dep_results, dict_dep_results)
+         result = runnable().run(data, dep_results, dict_dep_results)
 
          results[runnable] = result
          dict_results[runnable] = xmltodict.parse(result)
 
-      #TODO return xml string?
-      return results
+      doc = '<?xml version="1.0" encoding="utf-8"?>\n'
+      doc += '<extraction>\n'
+      for key in results:
+         doc += results[key]
+         doc += '\n'
+      doc += '</extraction>'
+      return doc
 
    def run_from_file(self, path):
       self.run(open(path, 'rb').read())
