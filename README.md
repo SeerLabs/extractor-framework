@@ -17,9 +17,14 @@ from extraction.core import ExtractionRunner
 class HasContentFilter(runnables.Filter):
 
    # override the filter method to define the actual logic
-   # filters should return a boolean for success
+   # filters should return an xml string indictating their result
+   # there are three helper functions to generate this string
+   # _filter_fail_result(), _filter_pass_result(), and _error_result(error_message)
    def filter(self, data, dependency_results):
-      return len(data) > 0
+      if data:
+         return self._filter_pass_result()
+      else
+         return self._filter_fail_result()
 
 # All extractors extend the runnables.Extractor class
 class TrimmedTextExtractor(runnables.Extractor):
@@ -30,9 +35,11 @@ class TrimmedTextExtractor(runnables.Extractor):
       return [HasContentFilter]
 
    # override the extract method to define extraction logic
-   # the extract method will probably return an xml string (TODO)
+   # the extract method should return an xml string
+   # there are two helper functions to do this
+   # _extractor_result(result_xml) and _error_result(error_message)
    def extract(self, data, dependency_results):
-      return data[:-1]
+      return self._extractor_result(data[:-1])
 
 # Create and run the whole extraction process
 runner = ExtractionRunner()

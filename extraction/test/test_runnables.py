@@ -16,22 +16,34 @@ class TestRunnables(unittest.TestCase):
       self.assertTrue(filters.FilterWithoutDeps in filters.FilterWithDeps.dependencies())
 
    def test_filter_method_gets_run(self):
-      self.assertTrue(filters.TrueFilter().run("some_data", {}))
-      self.assertFalse(filters.FalseFilter().run("some_data", {}))
+      pass
 
    def test_extractor_wrap_xml_content(self):
       extractor = extractors.NothingExtractor()
       xml_string = extractor._wrap_xml_content('<tag></tag>')
-      dict = xmltodict.parse(xml_string)
-      self.assertTrue('extractor' in dict)
-      self.assertTrue('@type' in dict['extractor'])
-      self.assertEqual(dict['extractor']['@type'], 'NothingExtractor')
+      dict_result = xmltodict.parse(xml_string)
+      self.assertTrue('extractor' in dict_result)
+      self.assertTrue('@type' in dict_result['extractor'])
+      self.assertEqual(dict_result['extractor']['@type'], 'NothingExtractor')
 
-   def test_extractor_xml_string_from_error(self):
+   def test_extractor_error_xml(self):
       extractor = extractors.NothingExtractor()
-      xml_string = extractor._xml_string_from_error("Test")
+      xml_string = extractor._error_xml("Test")
       # using xmltodict is a good way to check that xml is a simple valid format
       # and has the fields we expect regardless of whitespace
-      dict = xmltodict.parse(xml_string)
-      self.assertTrue('error' in dict['extractor'])
-      self.assertEqual(dict['extractor']['error'], 'Test')
+      dict_result = xmltodict.parse(xml_string)
+      self.assertTrue('error' in dict_result['extractor'])
+      self.assertEqual(dict_result['extractor']['error'], 'Test')
+
+   def test_failing_filter_dep_means_extractor_doesnt_run(self):
+      extractor = extractors.FailingDepsExtractor()
+      filter = filters.FailFilter()
+      filter_result = filter.run('nothing', {})
+      deps = {filters.FailFilter: filter_result}
+      extractor_result = extractor.run('nothing', deps)
+      dict_result = xmltodict.parse(extractor_result)
+      self.assertTrue('error' in dict_result['extractor'])
+      self.assertFalse('result' in dict_result['extractor'])
+      
+
+      
