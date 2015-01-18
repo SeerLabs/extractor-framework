@@ -14,17 +14,15 @@ from extraction.core import ExtractionRunner
 # define extractors and filters
 
 # All filters extend the runnables.Filter class
-class HasContentFilter(runnables.Filter):
+class HasLongContentFilter(runnables.Filter):
 
    # override the filter method to define the actual logic
    # filters should return an xml string indictating their result
    # there are three helper functions to generate this string
    # _filter_fail_result(), _filter_pass_result(), and _error_result(error_message)
    def filter(self, data, dep_results, dict_dep_results):
-      if data:
-         return self._filter_pass_result()
-      else
-         return self._filter_fail_result()
+      success = len(data) > 50
+      return self._filter_result_xml(success)
 
 # All extractors extend the runnables.Extractor class
 class TrimmedTextExtractor(runnables.Extractor):

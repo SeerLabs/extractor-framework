@@ -15,10 +15,41 @@ class TestRunnables(unittest.TestCase):
       self.assertEqual(len(filters.FilterWithDeps.dependencies()), 1)
       self.assertTrue(filters.FilterWithoutDeps in filters.FilterWithDeps.dependencies())
 
-   def test_filter_method_gets_run(self):
-      pass
+   def test_filter_result_methods(self):
+      filt = filters.FailFilter()
 
-   def test_extractor_wrap_xml_content(self):
+      result = filt._filter_fail_xml()
+      # using xmltodict is a good way to check that xml is a simple valid format
+      # and has the fields we expect regardless of whitespace
+      result_dict = xmltodict.parse(result)
+      self.assertTrue('FailFilter' in result)
+      self.assertTrue('filter' in result_dict)
+      self.assertTrue('result' in result_dict['filter'])
+      self.assertTrue('fail' in result_dict['filter']['result'])
+
+      result = filt._filter_pass_xml()
+      result_dict = xmltodict.parse(result)
+      self.assertTrue('FailFilter' in result)
+      self.assertTrue('filter' in result_dict)
+      self.assertTrue('result' in result_dict['filter'])
+      self.assertTrue('pass' in result_dict['filter']['result'])
+
+      result = filt._filter_result_xml(True)
+      result_dict = xmltodict.parse(result)
+      self.assertTrue('FailFilter' in result)
+      self.assertTrue('filter' in result_dict)
+      self.assertTrue('result' in result_dict['filter'])
+      self.assertTrue('pass' in result_dict['filter']['result'])
+
+      result = filt._filter_result_xml(False)
+      result_dict = xmltodict.parse(result)
+      self.assertTrue('FailFilter' in result)
+      self.assertTrue('filter' in result_dict)
+      self.assertTrue('result' in result_dict['filter'])
+      self.assertTrue('fail' in result_dict['filter']['result'])
+   
+
+   def test_wrap_xml_content(self):
       extractor = extractors.NothingExtractor()
       xml_string = extractor._wrap_xml_content('<tag></tag>')
       dict_result = xmltodict.parse(xml_string)
@@ -26,14 +57,35 @@ class TestRunnables(unittest.TestCase):
       self.assertTrue('@type' in dict_result['extractor'])
       self.assertEqual(dict_result['extractor']['@type'], 'NothingExtractor')
 
-   def test_extractor_error_xml(self):
+      filter = filters.PassFilter()
+      xml_string = filter._wrap_xml_content('<tag></tag>')
+      dict_result = xmltodict.parse(xml_string)
+      self.assertTrue('filter' in dict_result)
+      self.assertTrue('@type' in dict_result['filter'])
+      self.assertEqual(dict_result['filter']['@type'], 'PassFilter')
+
+   def test_error_xml(self):
       extractor = extractors.NothingExtractor()
       xml_string = extractor._error_xml("Test")
-      # using xmltodict is a good way to check that xml is a simple valid format
-      # and has the fields we expect regardless of whitespace
       dict_result = xmltodict.parse(xml_string)
       self.assertTrue('error' in dict_result['extractor'])
       self.assertEqual(dict_result['extractor']['error'], 'Test')
+
+      filter = filters.PassFilter()
+      xml_string = filter._error_xml("Test")
+      dict_result = xmltodict.parse(xml_string)
+      self.assertTrue('error' in dict_result['filter'])
+      self.assertEqual(dict_result['filter']['error'], 'Test')
+
+   def test_extractor_result_xml_from_dict(self):
+      extractor = extractors.NothingExtractor()
+      results = {'a':{'b': 5}, 'c': ['a', 'b']}
+      xml_string = extractor._extractor_result_xml_from_dict(results)
+      dict_result = xmltodict.parse(xml_string)
+      self.assertTrue('result' in dict_result['extractor'])
+      self.assertEqual(dict_result['extractor']['result']['c'], ['a', 'b'])
+      self.assertTrue('b' in dict_result['extractor']['result']['a'])
+      
 
    def test_failing_filter_dep_means_extractor_doesnt_run(self):
       extractor = extractors.FailingDepsExtractor()

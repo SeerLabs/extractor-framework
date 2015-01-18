@@ -12,10 +12,8 @@ import subprocess
 
 class HasNumbersFilter(Filter):
    def filter(self, data, deps, dict_deps):
-      if re.search(r'[0-9]', data, re.UNICODE):
-         return self._filter_pass_xml()
-      else:
-         return self._filter_fail_xml()
+      success = re.search(r'[0-9]', data, re.UNICODE)
+      return self._filter_result_xml(success)
 
 class EmailExtractor(Extractor):
    @staticmethod
@@ -26,10 +24,7 @@ class EmailExtractor(Extractor):
       emails = re.findall(r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b',
                         data,
                         re.IGNORECASE | re.UNICODE)
-
-      xml_result = xmltodict.unparse({'result': {'email': emails}}, full_document=False, pretty=True)
-      xml_result = self._wrap_xml_content(xml_result)
-      return xml_result
+      return self._extractor_result_xml_from_dict({'email': emails})
 
 class LinesStartWithNumberExtractor(Extractor):
    @staticmethod
@@ -39,9 +34,7 @@ class LinesStartWithNumberExtractor(Extractor):
    def extract(self, data, deps, dict_deps):
       (stdout, stderr) = utils.external_process(data, ['awk', '/^[0-9]/ {print;}', '-'])
       lines = [line for line in stdout.split("\n") if line]
-      xml_result = xmltodict.unparse({'result': {'line': lines}}, full_document=False, pretty=True)
-      return self._wrap_xml_content(xml_result)
-
+      return self._extractor_result_xml_from_dict({'line': lines})
 
 extraction_runner = ExtractionRunner()
 extraction_runner.add_filter(HasNumbersFilter)
@@ -53,6 +46,8 @@ print extraction_runner.run(u'''Random data inputted with some emails bob@exampl
       And some more stuff. howie009@yahoo.com
       jones@gmail.com fredie@emerson.retail.com
 123 bobbie@ist.psu.edu and that's all the text here.''')
+
+print '\n\n\n'
 
 
 print extraction_runner.run(u'Silly texy with email email@example.com but no numbers')

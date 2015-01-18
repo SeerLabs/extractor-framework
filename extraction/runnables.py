@@ -16,14 +16,14 @@ class Base(object):
       for filter in filter_deps:
          result = dict_dep_results[filter]
          if 'error' in result['filter']:
-            return self._error_xml('Dependency %s errored' % filter.__name__)
+            return self._error_xml('Did not run because dependency filter %s errored' % filter.__name__)
          elif result['filter']['result'] == 'fail':
-            return self._error_xml('Data failed filter %s' % filter.__name__)
+            return self._error_xml('Did not run because dependency filter %s failed' % filter.__name__)
 
       for extractor in extractor_deps:
          result = dict_dep_results[extractor]
          if 'error' in result['extractor']:
-            return self._error_xml('Dependency %s errored' % extractor.__name__)
+            return self._error_xml('Did not run because dependency extractor %s errored' % extractor.__name__)
 
       return None
 
@@ -48,6 +48,12 @@ class Filter(Base):
    def _filter_fail_xml(self):
       return self._wrap_xml_content('<result>fail</result>')
 
+   def _filter_result_xml(self, success):
+      if success:
+         return self._filter_pass_xml()
+      else:
+         return self._filter_fail_xml()
+
    def _wrap_xml_content(self, xml_string):
       return '<filter type="%s">%s</filter>' % (self.__class__.__name__, xml_string)
 
@@ -61,6 +67,11 @@ class Extractor(Base):
          return dep_errors
 
       return self.extract(data, dep_results, dict_dep_results)   
+
+   def _extractor_result_xml_from_dict(self, result_dict):
+      full_dict = {'result': result_dict} 
+      result_xml = xmltodict.unparse(full_dict, full_document=False, pretty=True)
+      return self._wrap_xml_content(result_xml)
 
    def _extractor_result_xml(self, result_xml):
       return self._wrap_xml_content('<result>%s</result>' % result_xml)
