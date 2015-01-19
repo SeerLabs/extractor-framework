@@ -19,4 +19,6 @@ def external_process(input_data, process_args):
                               stdout=subprocess.PIPE,
                               stdin=subprocess.PIPE,
                               stderr=subprocess.PIPE)
-   return process.communicate(input_data)
+   (stdout, stderr) =  process.communicate(input_data)
+   exit_status = process.returncode
+   return (exit_status, stdout, stderr)
