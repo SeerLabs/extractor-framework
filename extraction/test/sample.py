@@ -53,5 +53,8 @@ print '\n\n\n'
 print extraction_runner.run(u'Silly texy with email email@example.com but no numbers')
 
 
+print '\n\n\n'
+print extraction_runner.run_from_file('extraction/test/file_sample.txt')
+
       
       

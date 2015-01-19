@@ -39,4 +39,4 @@ class ExtractionRunner(object):
       return doc
 
    def run_from_file(self, path):
-      self.run(open(path, 'rb').read())
+      return self.run(open(path, 'rb').read())
