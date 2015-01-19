@@ -1,4 +1,5 @@
-from extraction.xmltodict import parse, unparse, OrderedDict
+import sys
+from xmltodict import parse, unparse, OrderedDict
 
 try:
     import unittest2 as unittest
@@ -7,6 +8,8 @@ except ImportError:
 import re
 import collections
 from textwrap import dedent
+
+IS_JYTHON = sys.platform.startswith('java')
 
 _HEADER_RE = re.compile(r'^[^\n]*\n')
 
@@ -46,9 +49,20 @@ class DictToXMLTestCase(unittest.TestCase):
         self.assertEqual(obj, parse(unparse(obj)))
         self.assertEqual(unparse(obj), unparse(parse(unparse(obj))))
 
+    def test_no_root(self):
+        self.assertRaises(ValueError, unparse, {})
+
     def test_multiple_roots(self):
         self.assertRaises(ValueError, unparse, {'a': '1', 'b': '2'})
         self.assertRaises(ValueError, unparse, {'a': ['1', '2', '3']})
+
+    def test_no_root_nofulldoc(self):
+        self.assertEqual(unparse({}, full_document=False), '')
+
+    def test_multiple_roots_nofulldoc(self):
+        obj = OrderedDict((('a', 1), ('b', 2)))
+        xml = unparse(obj, full_document=False)
+        self.assertEqual(xml, '<a>1</a><b>2</b>')
 
     def test_nested(self):
         obj = {'a': {'b': '1', 'c': '2'}}
@@ -88,7 +102,8 @@ class DictToXMLTestCase(unittest.TestCase):
         self.assertEqual(_strip(unparse(obj, preprocessor=p)),
                          '<a><c>2</c></a>')
 
-    if hasattr(collections, 'OrderedDict'):
+    if hasattr(collections, 'OrderedDict') and not IS_JYTHON:
+        # Jython's SAX does not preserve attribute order
         def test_attr_order_roundtrip(self):
             xml = '<root a="1" b="2" c="3"></root>'
             self.assertEqual(xml, _strip(unparse(parse(xml))))
