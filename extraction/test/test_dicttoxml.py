@@ -1,5 +1,5 @@
 import sys
-from xmltodict import parse, unparse, OrderedDict
+from extraction.xmltodict import parse, unparse, OrderedDict
 
 try:
     import unittest2 as unittest
