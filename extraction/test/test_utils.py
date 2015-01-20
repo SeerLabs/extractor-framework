@@ -16,4 +16,12 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertEqual(status, 0)
       (status, out, err) = utils.external_process('', ['false'])
       self.assertEqual(status, 1)
+
+   def test_external_process_timesout(self):
+      self.assertRaises(utils.TimeoutError, utils.external_process, '', ['sleep', '5'], timeout=3)
+
+      # This shouldn't timeout and thus shouldn't raise an error
+      utils.external_process('', ['sleep', '4'])
+
+
       
