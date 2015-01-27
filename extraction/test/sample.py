@@ -32,7 +32,7 @@ class LinesStartWithNumberExtractor(Extractor):
       return [HasNumbersFilter]
 
    def extract(self, data, deps, dict_deps):
-      (stdout, stderr) = utils.external_process(data, ['awk', '/^[0-9]/ {print;}', '-'])
+      (status, stdout, stderr) = utils.external_process(data, ['awk', '/^[0-9]/ {print;}', '-'])
       lines = [line for line in stdout.split("\n") if line]
       return self._extractor_result_xml_from_dict({'line': lines})
 
