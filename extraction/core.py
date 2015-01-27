@@ -1,4 +1,4 @@
-import extraction.xmltodict as xmltodict
+import xmltodict
 
 class ExtractionRunner(object):
    def __init__(self):

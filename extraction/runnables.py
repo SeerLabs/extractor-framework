@@ -1,4 +1,4 @@
-import extraction.xmltodict as xmltodict
+import xmltodict
 
 class Base(object):
    @staticmethod

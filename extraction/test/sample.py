@@ -5,7 +5,7 @@ It's just a demo, so for example, the EmailExtractor is quite simplistic.
 
 from extraction.core import ExtractionRunner
 from extraction.runnables import Filter, Extractor
-import extraction.xmltodict as xmltodict
+import xmltodict
 import extraction.utils as utils
 import re
 import subprocess

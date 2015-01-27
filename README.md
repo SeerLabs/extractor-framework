@@ -1,5 +1,10 @@
 # Extraction Framework #
 
+## Prerequisites ##
+* Python 2.6 (or Python 2.7 should work probably)
+* [xmltodict package](https://github.com/martinblech/xmltodict)
+* [subprocess32 package](https://pypi.python.org/pypi/subprocess32)
+
 ## Using the framework ##
 
 Example usage:

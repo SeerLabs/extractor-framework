@@ -2,7 +2,7 @@ import unittest
 import extraction.runnables as runnables
 import extraction.test.filters as filters
 import extraction.test.extractors as extractors
-import extraction.xmltodict as xmltodict
+import xmltodict
 
 
 class TestRunnables(unittest.TestCase):
