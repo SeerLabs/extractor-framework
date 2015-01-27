@@ -1,4 +1,4 @@
-import subprocess
+import subprocess32 as subprocess
 import threading
 import signal
 
@@ -21,21 +21,15 @@ def external_process(input_data, process_args, timeout=None):
                               stdout=subprocess.PIPE,
                               stdin=subprocess.PIPE,
                               stderr=subprocess.PIPE)
-   def alarm_handler(signum, frame):
-      raise TimeoutError
-
-   if timeout:
-      signal.signal(signal.SIGALRM, alarm_handler)
-      signal.alarm(timeout)
    try:
-      (stdout, stderr) =  process.communicate(input_data)
-      signal.alarm(0)
-   except TimeoutError:
+      (stdout, stderr) =  process.communicate(input_data, timeout)
+   except subprocess.TimeoutExpired as e:
+      # cleanup process
+      # see https://docs.python.org/3.3/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
       process.kill()
-      raise TimeoutError
+      process.communicate()
+      raise e
 
    exit_status = process.returncode
    return (exit_status, stdout, stderr)
 
-class TimeoutError(StandardError):
-   pass
