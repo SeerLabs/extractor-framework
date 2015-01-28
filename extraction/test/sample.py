@@ -32,7 +32,11 @@ class LinesStartWithNumberExtractor(Extractor):
       return [HasNumbersFilter]
 
    def extract(self, data, deps):
-      (status, stdout, stderr) = utils.external_process(data, ['awk', '/^[0-9]/ {print;}', '-'])
+      try:
+         (status, stdout, stderr) = utils.external_process(data, ['awk', '/^[0-9]/ {print;}', '-'], timeout=5)
+      except subprocess.TimeoutExpired:
+         raise RunnableError('awk timed out')
+
       lines = [line for line in stdout.split("\n") if line]
       return {'line': lines}
 
