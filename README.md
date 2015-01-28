@@ -22,12 +22,10 @@ from extraction.core import ExtractionRunner
 class HasLongContentFilter(runnables.Filter):
 
    # override the filter method to define the actual logic
-   # filters should return an xml string indictating their result
-   # there are three helper functions to generate this string
-   # _filter_fail_result(), _filter_pass_result(), and _error_result(error_message)
+   # filters should return True for passing or False for failing
    def filter(self, data, dep_results, dict_dep_results):
       success = len(data) > 50
-      return self._filter_result_xml(success)
+      return success
 
 # All extractors extend the runnables.Extractor class
 class TrimmedTextExtractor(runnables.Extractor):
@@ -38,16 +36,15 @@ class TrimmedTextExtractor(runnables.Extractor):
       return [HasContentFilter]
 
    # override the extract method to define extraction logic
-   # the extract method should return an xml string
-   # there are two helper functions to do this
-   # _extractor_result(result_xml) and _error_result(error_message)
+   # the extract method should return a string, xml string, or dict
+   # if there's a failure along the way, it can raise a RunnableError('with a message')
    def extract(self, data, dep_results, dict_dep_results):
-      return self._extractor_result(data[:-1])
+      return data[:-1]
 
 # Create and run the whole extraction process
 runner = ExtractionRunner()
-runner.add_filter(HasContentFilter)
-runner.add_extractor(TrimmedTextExtractor)
+runner.add_runnable(HasContentFilter)
+runner.add_runnable(TrimmedTextExtractor)
 
 xmlResults = runner.run_from_file('/path/to/pdf')
 
