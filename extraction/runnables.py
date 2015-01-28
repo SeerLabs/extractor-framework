@@ -36,23 +36,16 @@ class Filter(Base):
 
       Arguments passed in:
          data -- the original data the extractor started with
-         dep_results -- the results of any declared dependencies in xml form
-         dict_dep_results -- the same results as the previous argument, except in dict form
+         dep_results -- the results of any declared dependency filters or extractors
 
-      This method should return a string in xml format like one of the three examples:
-        <filter type="FilterClassName"><result>fail</result></filter>
-        <filter type="FilterClassName"><result>pass</result></filter>
-        <filter type="FilterClassName"><error>Error message</error></filter>
+      If the filter is successful, this method should:
+         return True
 
-      There are various helper methods to generate these strings:
-      >>> self._filter_fail_xml()
-      <filter type="FilterClassName"><result>fail</result></filter>
-      
-      >>>  self._filter_pass_xml()
-      <filter type="FilterClassName"><result>pass</result></filter>
+      If the filter fails, this method should:
+         return False
 
-      >>> self._error_xml('Error message')
-      <filter type="FilterClassName"><error>Error message</error></filter>
+      If the filters encounters something unexpected, this method should:
+         raise RunnableError('Error Description Here')
       """
       return False
 
@@ -73,28 +66,17 @@ class Extractor(Base):
 
       Arguments passed in:
          data -- the original data the extractor started with
-         dep_results -- the results of any declared dependencies in xml form
-         dict_dep_results -- the same results as the previous argument, except in dict form
+         dep_results -- the results of any declared dependencies 
 
-      This method should return a string in xml format like one of the two examples:
-        <extractor type="ExtractorClassName"><result>result body as xml</result></extractor>
-        <extractor type="ExtractorClassName"><error>Error message</error></extractor>
+      If the extractor succeeds, it should either return an:
+         xml snippet in string form of the results
+            or
+         dict object of the results
 
-      There are various helper methods to generate these results.
-      >>> self._error_xml('Error message') will generate a string like the second example
-      <extractor type="ExtractorClassName"><error>Error message</error></extractor>
-      
-      >>> self._extractor_result_xml('<author>Joe</author><author>James</author>')
-      <extractor type="ExtractorClassName><result>
-         <author>Joe</author><author>James</author>
-      </result></extractor>
-
-      >>> self._extractor_result_xml_from_dict({'author': ['Joe', 'James']})
-      <extractor type="ExtractorClassName><result>
-         <author>Joe</author><author>James</author>
-      </result></extractor>
+      If the extract method returns a dict object, it will be passed to other extractors as a dict
+      However, it will be converted to xml via the xmltodict library for the final generated xml file
       """
-      return self._extractor_result_xml('Nothing')
+      return 'Nothing'
 
    def run(self, data, dep_results):
       dep_error = self.check_dep_errors(dep_results)
