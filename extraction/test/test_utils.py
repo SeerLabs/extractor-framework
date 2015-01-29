@@ -2,7 +2,7 @@ import unittest
 import subprocess32 as subprocess
 import extraction.utils as utils
 
-class TestExtractionRunner(unittest.TestCase):
+class TestUtils(unittest.TestCase):
    def setUp(self):
       pass
 
@@ -19,10 +19,10 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertEqual(status, 1)
 
    def test_external_process_timesout(self):
-      self.assertRaises(subprocess.TimeoutExpired, utils.external_process, '', ['sleep', '5'], timeout=3)
+      self.assertRaises(subprocess.TimeoutExpired, utils.external_process, '', ['sleep', '3'], timeout=2)
 
       # This shouldn't timeout and thus shouldn't raise an error
-      utils.external_process('', ['sleep', '4'])
+      utils.external_process('', ['sleep', '3'])
 
 
 

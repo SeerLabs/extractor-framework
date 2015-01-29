@@ -1,10 +1,11 @@
-import extraction.runnables as runnables
+from extraction.runnables import Filter
+import re
 
-class FilterWithoutDeps(runnables.Filter):
+class FilterWithoutDeps(Filter):
    def filter(self, data, dep_results):
       return True
 
-class FilterWithDeps(runnables.Filter):
+class FilterWithDeps(Filter):
    @staticmethod
    def dependencies():
       return [FilterWithoutDeps]
@@ -12,12 +13,17 @@ class FilterWithDeps(runnables.Filter):
    def filter(self, data, dep_results):
       return True
 
-class PassFilter(runnables.Filter):
+class PassFilter(Filter):
    def filter(self, data, dep_results):
       return True
 
-class FailFilter(runnables.Filter):
+class FailFilter(Filter):
    def filter(self, data, dep_results):
       return False
+
+class HasNumbersFilter(Filter):
+   def filter(self, data, deps):
+      success = re.search(r'[0-9]', data, re.UNICODE)
+      return bool(success)
 
 

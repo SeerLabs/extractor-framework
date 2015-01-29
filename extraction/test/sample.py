@@ -58,7 +58,7 @@ print extraction_runner.run(u'Silly texy with email email@example.com but no num
 
 
 print '\n\n\n'
-print extraction_runner.run_from_file('extraction/test/file_sample.txt', pretty=True)
+print extraction_runner.run_from_file('extraction/test/sample_files/file_sample.txt', pretty=True)
 
       
       

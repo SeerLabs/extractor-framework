@@ -1,4 +1,5 @@
 import xmltodict
+import glob
 from extraction.runnables import Extractor, Filter, RunnableError
 
 class ExtractionRunner(object):
@@ -56,6 +57,16 @@ class ExtractionRunner(object):
 
    def run_from_file(self, path, pretty=False):
       return self.run(open(path, 'rb').read(), pretty=pretty)
+
+   def run_batch(self, list_of_data, pretty=False):
+      for data in list_of_data:
+         yield self.run(data, pretty=pretty)
+
+   def run_batch_from_glob(self, dir_glob, pretty=False):
+      print dir_glob
+      for path in glob.iglob(dir_glob):
+         print path
+         yield self.run_from_file(path, pretty=pretty)
 
    def _result_to_string(self, result):
       if isinstance(result, dict):
