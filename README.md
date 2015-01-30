@@ -5,6 +5,15 @@
 * [xmltodict package](https://github.com/martinblech/xmltodict)
 * [subprocess32 package](https://pypi.python.org/pypi/subprocess32)
 
+## Installation ##
+Clone this repo to your local machine anywhere
+From the project root directory, run:
+
+    python setup.py install --user
+
+(The --user option is optional, I just like to 
+install packages only for my user account personally)
+
 ## Using the framework ##
 
 Example usage:
