@@ -3,6 +3,7 @@ import tempfile
 import unittest
 import xmltodict
 from extraction.test.extractors import *
+from extraction.test.filters import *
 from extraction.core import ExtractionRunner
 
 class TestExtractionRunner(unittest.TestCase):
@@ -81,7 +82,7 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue('@file' in results[0]['extraction'])
       self.assertTrue('@file' in results[1]['extraction'])
 
-   def test_dependency_errors_cascade(self):
+   def test_extractor_errors_cascade(self):
       runner = ExtractionRunner()
       runner.add_runnable(ErrorExtractor)
       runner.add_runnable(DepsOnErrorExtractor)
@@ -96,4 +97,23 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue('error' in result['extraction']['extractors']['DepsOnErrorExtractor2'])
       self.assertFalse('result' in result['extraction']['extractors']['DepsOnErrorExtractor2'])
       
+   def test_filter_results_cascade(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(FailFilter)
+      runner.add_runnable(FailingDepsExtractor)
+
+      xml = runner.run('data')
+      result = xmltodict.parse(xml)
+      self.assertTrue('False' in result['extraction']['filters']['FailFilter']['result'])
+      self.assertTrue('error' in result['extraction']['extractors']['FailingDepsExtractor'])
+
+      runner = ExtractionRunner()
+      runner.add_runnable(PassFilter)
+      runner.add_runnable(PassingDepsExtractor)
+
+      xml = runner.run('data')
+      result = xmltodict.parse(xml)
+      self.assertTrue('True' in result['extraction']['filters']['PassFilter']['result'])
+      self.assertTrue('result' in result['extraction']['extractors']['PassingDepsExtractor'])
+
       
