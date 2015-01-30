@@ -42,6 +42,8 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue('extraction' in result)
       self.assertTrue('filters' in result['extraction'])
       self.assertTrue('extractors' in result['extraction'])
+      # ensure filename isn't in runs from data
+      self.assertTrue('@file' not in result['extraction'])
 
    def test_run_from_file(self):
       runner = ExtractionRunner()
@@ -51,6 +53,9 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue('SelfExtractor' in result['extraction']['extractors'])
       self.assertTrue('result' in result['extraction']['extractors']['SelfExtractor'])
       self.assertEqual(result['extraction']['extractors']['SelfExtractor']['result'], 'file 1')
+
+      # ensure filename present
+      self.assertTrue('@file' in result['extraction'])
 
    def test_run_batch(self):
       runner = ExtractionRunner()
@@ -66,7 +71,6 @@ class TestExtractionRunner(unittest.TestCase):
       runner.add_runnable(SelfExtractor)
 
       glob = self.file_dir + '/*.txt'
-      print os.system('ls -la ' + glob)
       xmls = list(runner.run_batch_from_glob(glob))
       results = [xmltodict.parse(x) for x in xmls]
       self.assertEqual(len(results), 2)
@@ -74,5 +78,22 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue('file 1' in short_results)
       self.assertTrue('file 2' in short_results)
       self.assertFalse('file 3' in short_results)
+      self.assertTrue('@file' in results[0]['extraction'])
+      self.assertTrue('@file' in results[1]['extraction'])
+
+   def test_dependency_errors_cascade(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(ErrorExtractor)
+      runner.add_runnable(DepsOnErrorExtractor)
+      runner.add_runnable(DepsOnErrorExtractor2)
+
+      xml = runner.run('data')
+      result = xmltodict.parse(xml)
+      self.assertTrue('error' in result['extraction']['extractors']['ErrorExtractor'])
+      self.assertFalse('result' in result['extraction']['extractors']['ErrorExtractor'])
+      self.assertTrue('error' in result['extraction']['extractors']['DepsOnErrorExtractor'])
+      self.assertFalse('result' in result['extraction']['extractors']['DepsOnErrorExtractor'])
+      self.assertTrue('error' in result['extraction']['extractors']['DepsOnErrorExtractor2'])
+      self.assertFalse('result' in result['extraction']['extractors']['DepsOnErrorExtractor2'])
       
       

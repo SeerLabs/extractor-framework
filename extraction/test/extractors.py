@@ -1,4 +1,4 @@
-from extraction.runnables import Extractor
+from extraction.runnables import Extractor, RunnableError
 import extraction.test.filters as filters
 
 class NothingExtractor(Extractor):
@@ -8,6 +8,26 @@ class NothingExtractor(Extractor):
 class SelfExtractor(Extractor):
    def extract(self, data, dep_results):
       return data
+
+class ErrorExtractor(Extractor):
+   def extract(self, data, dep_results):
+      raise RunnableError('I always Error!')
+
+class DepsOnErrorExtractor(Extractor):
+   @staticmethod
+   def dependencies():
+      return [ErrorExtractor]
+   def extract(self, data, dep_results):
+      return data
+
+class DepsOnErrorExtractor2(Extractor):
+   @staticmethod
+   def dependencies():
+      return [DepsOnErrorExtractor]
+   def extract(self, data, dep_results):
+      return data
+
+
 
 class FailingDepsExtractor(Extractor):
    @staticmethod

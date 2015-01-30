@@ -21,7 +21,7 @@ class ExtractionRunner(object):
          self.filters.append(runnable)
 
 
-   def run(self, data, pretty=False):
+   def run(self, data, pretty=False, filename=None):
       results = {}
       for runnable in self.runnables:
          dep_results = dict(filter(lambda (k,v): k in runnable.dependencies(), results.items()))
@@ -34,7 +34,10 @@ class ExtractionRunner(object):
          results[runnable] = result
 
       doc = '<?xml version="1.0" encoding="utf-8"?>\n'
-      doc += '<extraction>'
+      if filename:
+         doc += '<extraction file="{0}">'.format(filename)
+      else:
+         doc += '<extraction>'
 
       doc += '<filters>'
       for filt in self.filters:
@@ -56,16 +59,14 @@ class ExtractionRunner(object):
       return doc
 
    def run_from_file(self, path, pretty=False):
-      return self.run(open(path, 'rb').read(), pretty=pretty)
+      return self.run(open(path, 'rb').read(), pretty=pretty, filename=path)
 
    def run_batch(self, list_of_data, pretty=False):
       for data in list_of_data:
          yield self.run(data, pretty=pretty)
 
    def run_batch_from_glob(self, dir_glob, pretty=False):
-      print dir_glob
       for path in glob.iglob(dir_glob):
-         print path
          yield self.run_from_file(path, pretty=pretty)
 
    def _result_to_string(self, result):
