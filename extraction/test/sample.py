@@ -8,7 +8,7 @@ from extraction.runnables import Filter, Extractor
 import xmltodict
 import extraction.utils as utils
 import re
-import subprocess
+import subprocess32 as subproces
 
 class HasNumbersFilter(Filter):
    def filter(self, data, deps):
