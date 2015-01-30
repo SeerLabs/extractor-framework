@@ -73,14 +73,13 @@ class TestExtractionRunner(unittest.TestCase):
 
       glob = self.file_dir + '/*.txt'
       xmls = list(runner.run_batch_from_glob(glob))
-      results = [xmltodict.parse(x) for x in xmls]
+      results = dict([(x[0], xmltodict.parse(x[1])) for x in xmls])
       self.assertEqual(len(results), 2)
-      short_results = [d['extraction']['extractors']['SelfExtractor']['result'] for d in results]
-      self.assertTrue('file 1' in short_results)
-      self.assertTrue('file 2' in short_results)
-      self.assertFalse('file 3' in short_results)
-      self.assertTrue('@file' in results[0]['extraction'])
-      self.assertTrue('@file' in results[1]['extraction'])
+      self.assertTrue('file 1' in results[self.f1_path]['extraction']['extractors']['SelfExtractor']['result'])
+      self.assertTrue('file 2' in results[self.f2_path]['extraction']['extractors']['SelfExtractor']['result'])
+      self.assertFalse(self.f3_path in results)
+      self.assertTrue('@file' in results[self.f1_path]['extraction'])
+      self.assertTrue('@file' in results[self.f2_path]['extraction'])
 
    def test_extractor_errors_cascade(self):
       runner = ExtractionRunner()

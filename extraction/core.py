@@ -67,7 +67,7 @@ class ExtractionRunner(object):
 
    def run_batch_from_glob(self, dir_glob, pretty=False):
       for path in glob.iglob(dir_glob):
-         yield self.run_from_file(path, pretty=pretty)
+         yield (path, self.run_from_file(path, pretty=pretty))
 
    def _result_to_string(self, result):
       if isinstance(result, dict):
