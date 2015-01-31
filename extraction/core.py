@@ -33,27 +33,27 @@ class ExtractionRunner(object):
 
          results[runnable] = result
 
-      doc = '<?xml version="1.0" encoding="utf-8"?>\n'
+      doc = u'<?xml version="1.0" encoding="utf-8"?>\n'
       if filename:
-         doc += '<extraction file="{0}">'.format(filename)
+         doc += u'<extraction file="{0}">'.format(filename)
       else:
-         doc += '<extraction>'
+         doc += u'<extraction>'
 
-      doc += '<filters>'
+      doc += u'<filters>'
       for filt in self.filters:
-         doc += '<{0}>'.format(filt.__name__)
+         doc += u'<{0}>'.format(filt.__name__)
          doc += self._result_to_string(results[filt])
-         doc += '</{0}>'.format(filt.__name__)
-      doc += '</filters>'
+         doc += u'</{0}>'.format(filt.__name__)
+      doc += u'</filters>'
 
-      doc += '<extractors>'
+      doc += u'<extractors>'
       for extractor in self.extractors:
-         doc += '<{0}>'.format(extractor.__name__)
+         doc += u'<{0}>'.format(extractor.__name__)
          doc += self._result_to_string(results[extractor])
-         doc += '</{0}>'.format(extractor.__name__)
-      doc += '</extractors>'
+         doc += u'</{0}>'.format(extractor.__name__)
+      doc += u'</extractors>'
          
-      doc += '</extraction>'
+      doc += u'</extraction>'
       if pretty:
          doc = xmltodict.unparse(xmltodict.parse(doc), pretty=True)
       return doc
@@ -71,10 +71,10 @@ class ExtractionRunner(object):
 
    def _result_to_string(self, result):
       if isinstance(result, dict):
-         return '<result>{0}</result>'.format(xmltodict.unparse(result, full_document=False))
+         return u'<result>{0}</result>'.format(xmltodict.unparse(result, full_document=False))
       elif isinstance(result, RunnableError):
-         return '<error>{0}</error>'.format(result.msg)
+         return u'<error>{0}</error>'.format(result.msg)
       else:
-         return '<result>{0}</result>'.format(result)
+         return u'<result>{0}</result>'.format(result)
 
 
