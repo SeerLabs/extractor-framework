@@ -4,8 +4,8 @@ It's just a demo, so for example, the EmailExtractor is quite simplistic.
 '''
 
 from extraction.core import ExtractionRunner
-from extraction.runnables import Filter, Extractor
-import xmltodict
+from extraction.runnables import Filter, Extractor, ExtractorResult
+import xml.etree.ElementTree as ET
 import extraction.utils as utils
 import re
 import subprocess32 as subproces
@@ -24,7 +24,12 @@ class EmailExtractor(Extractor):
       emails = re.findall(r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b',
                         data,
                         re.IGNORECASE | re.UNICODE)
-      return {'email': emails}
+      root = ET.Element('extraction')
+      for email in emails:
+         ele = ET.SubElement(root, 'email')
+         ele.text = email
+
+      return ExtractorResult(ET.ElementTree(root))
 
 class LinesStartWithNumberExtractor(Extractor):
    @staticmethod
@@ -38,27 +43,26 @@ class LinesStartWithNumberExtractor(Extractor):
          raise RunnableError('awk timed out')
 
       lines = [line for line in stdout.split("\n") if line]
-      return {'line': lines}
+
+      root = ET.Element('extraction')
+      for line in lines:
+         ele = ET.SubElement(root, 'line')
+         ele.text = line
+
+      return ExtractorResult(ET.ElementTree(root))
 
 extraction_runner = ExtractionRunner()
 extraction_runner.add_runnable(HasNumbersFilter)
 extraction_runner.add_runnable(EmailExtractor)
 extraction_runner.add_runnable(LinesStartWithNumberExtractor)
 
-print extraction_runner.run(u'''Random data inputted with some emails bob@example.com
+extraction_runner.run(u'''Random data inputted with some emails bob@example.com
 523 And some more text with @ signs now and then. Meet you@home@2p.m.
       And some more stuff. howie009@yahoo.com
       jones@gmail.com fredie@emerson.retail.com
-123 bobbie@ist.psu.edu and that's all the text here.''', pretty=True)
+123 bobbie@ist.psu.edu and that's all the text here.''', 'extraction/test/sample_files')
 
-print '\n\n\n'
-
-
-print extraction_runner.run(u'Silly texy with email email@example.com but no numbers', pretty=True)
-
-
-print '\n\n\n'
-print extraction_runner.run_from_file('extraction/test/sample_files/file_sample.txt', pretty=True)
+#print extraction_runner.run_from_file('extraction/test/sample_files/file_sample.txt', pretty=True)
 
       
       

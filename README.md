@@ -3,6 +3,7 @@
 ## Prerequisites ##
 * Python 2.6 (or Python 2.7 should work probably)
 * [xmltodict package](https://github.com/martinblech/xmltodict)
+* [defusedxml package](https://pypi.python.org/pypi/defusedxml)
 * [subprocess32 package](https://pypi.python.org/pypi/subprocess32)
 
 ## Installation ##

@@ -1,4 +1,5 @@
 import xmltodict
+import collections
 
 class Base(object):
    @staticmethod
@@ -67,16 +68,16 @@ class Extractor(Base):
       Arguments passed in:
          data -- the original data the extractor started with
          dep_results -- the results of any declared dependencies 
+            These results will be a dictionary where each key is an
+            Extractor class and each value is an instance of 
+            the ExtractorResult named tuple
+         
 
-      If the extractor succeeds, it should either return an:
-         xml snippet in string form of the results
-            or
-         dict object of the results
-
-      If the extract method returns a dict object, it will be passed to other extractors as a dict
-      However, it will be converted to xml via the xmltodict library for the final generated xml file
+      If the extractor succeeds, it should return an ExtractorResult named tuple
+      If at any point the extractor encouters a critical error, it should
+        raise a RunnableError
       """
-      return 'Nothing'
+      raise RunnableError('Override this method')
 
    def run(self, data, dep_results):
       dep_error = self.check_dep_errors(dep_results)
@@ -84,6 +85,11 @@ class Extractor(Base):
          return dep_error
 
       return self.extract(data, dep_results)    
+
+
+ExtractorResult = collections.namedtuple('ExtractorResult', 'xml_result files')
+# Set files field to be None be default so it's optional
+ExtractorResult.__new__.__defaults__ = (None,)
 
 
 class RunnableError(Exception):
