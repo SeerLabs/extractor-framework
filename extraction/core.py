@@ -6,14 +6,16 @@ class ExtractionRunner(object):
    def __init__(self):
       self.filters = []
       self.extractors = []
-      self.runnables = []
+      self.runnables = {}
 
-   def add_runnable(self, runnable):
+   def add_runnable(self, runnable, include_in_output=True):
       #TODO we should construct a graph of filters and extractors
       # then if there are any circular dependencies we can throw an error
       # we can also remove the requirement to add runnables in order
       # these comments also apply to the add_extractor method
-      self.runnables.append(runnable)
+      self.runnables[runnable] = {
+            'include_in_output': include_in_output
+         }
 
       if issubclass(runnable, Extractor):
          self.extractors.append(runnable)
@@ -41,6 +43,7 @@ class ExtractionRunner(object):
 
       doc += u'<filters>'
       for filt in self.filters:
+         if not self.runnables[filt]['include_in_output']: continue
          doc += u'<{0}>'.format(filt.__name__)
          doc += self._result_to_string(results[filt])
          doc += u'</{0}>'.format(filt.__name__)
@@ -48,6 +51,7 @@ class ExtractionRunner(object):
 
       doc += u'<extractors>'
       for extractor in self.extractors:
+         if not self.runnables[extractor]['include_in_output']: continue
          doc += u'<{0}>'.format(extractor.__name__)
          doc += self._result_to_string(results[extractor])
          doc += u'</{0}>'.format(extractor.__name__)

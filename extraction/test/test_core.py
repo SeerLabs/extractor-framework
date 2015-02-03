@@ -115,4 +115,20 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue('True' in result['extraction']['filters']['PassFilter']['result'])
       self.assertTrue('result' in result['extraction']['extractors']['PassingDepsExtractor'])
 
+   def test_include_in_output(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(FailFilter)
+      runner.add_runnable(PassFilter)
+      xml = runner.run('data')
+      result = xmltodict.parse(xml)
+      self.assertTrue('FailFilter' in result['extraction']['filters'])
+
+      runner = ExtractionRunner()
+      runner.add_runnable(FailFilter, include_in_output=False)
+      runner.add_runnable(PassFilter)
+      xml = runner.run('data')
+      result = xmltodict.parse(xml)
+      self.assertFalse('FailFilter' in result['extraction']['filters'])
+
+
       
