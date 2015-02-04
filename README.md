@@ -17,48 +17,69 @@ install packages only for my user account personally)
 
 ## Using the framework ##
 
-Example usage:
+#### Creating Filters and Extractors ####
 
 ```
 #!python
 
-# import require modules
-import extraction.runnables as runnables
-from extraction.core import ExtractionRunner
+# import needed classes from extraction.runnable module
+from extraction.runnables import Extractor, Filter, RunnableError, ExtractionResult
+import xml.etree.ElementTree as ET
+import extraction.utils as utils
 
-# define extractors and filters
-
-# All filters extend the runnables.Filter class
-class HasLongContentFilter(runnables.Filter):
-
-   # override the filter method to define the actual logic
-   # filters should return True for passing or False for failing
-   def filter(self, data, dep_results, dict_dep_results):
-      success = len(data) > 50
-      return success
-
-# All extractors extend the runnables.Extractor class
-class TrimmedTextExtractor(runnables.Extractor):
-   # If an extractor/filter depends on a previous result
-   # define a staticmethod that returns an array of dependencies
+# every extractor/filter is defined in its own class
+# extractors must inherit from Extractor
+class TextExtractor(Extractor):
+   # if the extractor depends on the results of other extractors or filters
+   # it must override the static dependencies method
    @staticmethod
    def dependencies():
-      return [HasContentFilter]
+      return [EnglishFilter]
 
-   # override the extract method to define extraction logic
-   # the extract method should return a string, xml string, or dict
-   # if there's a failure along the way, it can raise a RunnableError('with a message')
-   def extract(self, data, dep_results, dict_dep_results):
-      return data[:-1]
+   # extractors must override the extract method
+   # this is where the main logic goes
+   # the data argument contains the original data that the extraction runner started with
+   # any results from dependencies are placed in the dep_results argument
+   def extract(self, data, dep_results):
+      # if something unexpected happens, a RunnableError should be raised
+      if some_module.is_bad(data):
+         raise RunnableError('Data in improper format')
+      else
+         text_part_1 = some_module.get_some_text(data)
+         text_part_2 = some_module.get_some_text(data)
+         file_path_1 = 'text-file-1.txt'
+         file_path_2 = 'text-file-2.txt'
+         
+         root = ET.Element('text-files')
+         ele1 = ET.SubElement(root, 'file')
+         ele1.text = file_path_1
+         ele2 = ET.SubElement(root, 'file')
+         ele2.text = file_path_2
 
-# Create and run the whole extraction process
-runner = ExtractionRunner()
-runner.add_runnable(HasContentFilter)
-runner.add_runnable(TrimmedTextExtractor)
+         files = { file_path_1: text_part_1, file_path_2: text_part_2 }
 
-xmlResults = runner.run_from_file('/path/to/pdf')
+         # the extract method should return an ExtractionResult object
+         # it has a mandatory xml_result field which should be a xml.etree.ElementTree.element object
+         # the files parameter is optional but if supplied is a dictionary such that dict[file_name] = file_contents
+         # the xml result will be written to the output directory of the whole extraction process as well as the files in files
+         result = ExtractionResult(xml_result=root, files=files)
+         return result
+
+# filters extend the Filter class
+class EnglishFilter(Filter):
+   # they may also declare dependencies if desired
+   # this filter has no dependencies
+
+   # Filters must override the filter method
+   # this is where their main logic goes
+   def filter(self, data, dep_results):
+      # filters should return a boolean: True for passing and False for failing
+      # like extractors, they may also raise a RunnableError if something goes wrong
+      return ' the ' in data
 
 ```
+
+
 
 ## Sample Framework Usage ##
 For another example of usage, see extraction/test/sample.py
