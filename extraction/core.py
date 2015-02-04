@@ -63,7 +63,7 @@ class ExtractionRunner(object):
 
    def _output_result(self, runnable, result, output_dir):
       if isinstance(result, RunnableError):
-         error = ET.element('error')
+         error = ET.Element('error')
          error.text = result.msg
          result = ET.ElementTree(error)
          result_path = os.path.join(output_dir,'{0}.xml'.format(runnable.__name__))
