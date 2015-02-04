@@ -70,7 +70,8 @@ class ExtractionRunner(object):
          result.write(result_path, encoding='UTF-8')
       elif isinstance(result, ExtractorResult):
          files_dict = result.files
-         xml_result = result.xml_result
+         xml_result = ET.ElementTree(result.xml_result)
+
          result_path = os.path.join(output_dir,'{0}.xml'.format(runnable.__name__))
 
          xml_result.write(result_path, encoding='UTF-8')

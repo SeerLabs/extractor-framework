@@ -29,7 +29,7 @@ class EmailExtractor(Extractor):
          ele = ET.SubElement(root, 'email')
          ele.text = email
 
-      return ExtractorResult(ET.ElementTree(root))
+      return ExtractorResult(xml_result=root)
 
 class LinesStartWithNumberExtractor(Extractor):
    @staticmethod
@@ -49,7 +49,7 @@ class LinesStartWithNumberExtractor(Extractor):
          ele = ET.SubElement(root, 'line')
          ele.text = line
 
-      return ExtractorResult(ET.ElementTree(root))
+      return ExtractorResult(xml_result=root)
 
 extraction_runner = ExtractionRunner()
 extraction_runner.add_runnable(HasNumbersFilter)
@@ -60,9 +60,8 @@ extraction_runner.run(u'''Random data inputted with some emails bob@example.com
 523 And some more text with @ signs now and then. Meet you@home@2p.m.
       And some more stuff. howie009@yahoo.com
       jones@gmail.com fredie@emerson.retail.com
-123 bobbie@ist.psu.edu and that's all the text here.''', 'extraction/test/sample_files')
+123 bobbie@ist.psu.edu and that's all the text here.''', 'extraction/test/sample_output')
 
-#print extraction_runner.run_from_file('extraction/test/sample_files/file_sample.txt', pretty=True)
 
       
       
