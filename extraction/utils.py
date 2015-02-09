@@ -1,6 +1,8 @@
 import subprocess32 as subprocess
 import threading
 import signal
+import tempfile
+import os
 
 def external_process(process_args, input_data='', timeout=None):
    '''
@@ -34,4 +36,14 @@ def external_process(process_args, input_data='', timeout=None):
 
    exit_status = process.returncode
    return (exit_status, stdout, stderr)
+
+
+def temp_file(data, suffix=''):
+   handle, file_path = tempfile.mkstemp(suffix=suffix)
+   f = os.fdopen(handle, 'w')
+   f.write(data)
+   f.close()
+   return file_path
+
+
 
