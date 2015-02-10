@@ -159,24 +159,24 @@ class TestExtractionRunner(unittest.TestCase):
       result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
       self.assertFalse(os.path.isfile(result_file_path))
 
-
-      
-
-   def test_output_results_option_defaults_to_true(self):
+   def test_files_get_written(self):
       runner = ExtractionRunner()
-      runner.add_runnable(SelfExtractor)
-      runner.run('test', output_dir = self.results_dir)
+      runner.add_runnable(ImplTestFileExtractor)
+      runner.run('whatever', output_dir=self.results_dir)
 
-      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
+      result_file_path = os.path.join(self.results_dir, 'test.txt')
       self.assertTrue(os.path.isfile(result_file_path))
+      self.assertEqual(open(result_file_path, 'r').read(), 'test test')
 
-   def test_output_results_option_when_false(self):
+   def test_dependency_results_work(self):
       runner = ExtractionRunner()
-      runner.add_runnable(SelfExtractor, output_results=False)
-      runner.run('test', output_dir = self.results_dir)
+      runner.add_runnable(ImplTestFileExtractor)
+      runner.add_runnable(DepsOnTestFileExtractor)
+      # an error will be thrown if dependency doesn't work
+      # so no need to assert anything in this test
+      runner.run('whatever', output_dir=self.results_dir)
 
-      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
-      self.assertFalse(os.path.isfile(result_file_path))
-
-
+      runner = ExtractionRunner()
+      runner.add_runnable(DepsOnTestFileExtractor)
+      self.assertRaises(LookupError, runner.run, 'whatever', output_dir=self.results_dir)
       

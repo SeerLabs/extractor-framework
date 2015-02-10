@@ -31,7 +31,7 @@ class ExtractionRunner(object):
 
       results = {}
       for runnable in self.runnables:
-         dep_results = dict(filter(lambda (k,v): k in runnable.dependencies(), results.items()))
+         dep_results = self._select_dependency_results(runnable.dependencies(), results)
 
          try:
             result = runnable().run(data, dep_results)
@@ -64,6 +64,19 @@ class ExtractionRunner(object):
    #def run_batch_from_glob(self, dir_glob, output_dir)
       #for path in enumerate(glob.iglob(dir_glob)):
          #self.run_from_file(path, pretty=pretty))
+
+   def _select_dependency_results(self, dependencies, results):
+      # N^2 implementation right now, maybe this doesn't matter but could be improved if needed
+      dependency_results = {}
+      for DependencyClass in dependencies:
+         for ResultClass, result in results.items():
+            if issubclass(ResultClass, DependencyClass):
+               dependency_results[DependencyClass] = result
+               break
+         else:
+            raise LookupError('No runnable satisfies the requirement for a {0}'.format(DependencyClass.__name__))
+
+      return dependency_results
 
    def _output_result(self, runnable, result, output_dir, write_dep_errors):
       if isinstance(result, RunnableError):

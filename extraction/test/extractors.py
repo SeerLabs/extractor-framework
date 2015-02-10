@@ -50,3 +50,24 @@ class PassingDepsExtractor(Extractor):
       ele.text = data
       return ExtractorResult(ele)
 
+#Extractors that extend this extractor should generate a file named 'test.txt' with the content 'test test'
+class TestFileExtractor(Extractor):
+   def extract(self, data, dep_results):
+      raise RunnableError('This Extractor Should Be Extended')
+
+class ImplTestFileExtractor(TestFileExtractor):
+   def extract(self, data, dep_results):
+      ele = ET.Element('file')
+      ele.text = 'test.txt'
+      files = {'test.txt': 'test test'}
+      return ExtractorResult(ele, files=files)
+
+class DepsOnTestFileExtractor(Extractor):
+   @staticmethod
+   def dependencies():
+      return [TestFileExtractor]
+
+   def extract(self, data, dep_results):
+      return dep_results[TestFileExtractor]
+
+

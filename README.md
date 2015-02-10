@@ -79,6 +79,39 @@ class EnglishFilter(Filter):
 
 ```
 
+A note on writing extractors:
+Extractors that return results of the same format should extend a common subclass of Extractor.
+This way, classes can define their dependencies to rely on that common subclass.
+A quick stub example:
+
+```python
+
+# Interface extractor
+# Any extractor extending this class should return an xml document defined by XML DTD EmailExtraction.dtd
+class EmailExtractor(Extractor):
+   def extract(self, data, dep_results):
+      raise NotImplementedError('This is an abstract class!')
+
+class AwkEmailExtractor(EmailExtractor):
+   def extract(self, data, dep_results):
+      ...
+
+class GrepEmailExtractor(EmailExtractor):
+   def extract(self, data, dep_results):
+      ...
+
+class WebdomainExtractor(Extractor):
+   @staticmethod
+   def dependencies():
+      return [EmailExtractor]
+
+   def extract(self, data, dep_results):
+      ...
+```
+
+In this example above, either `AwkEmailExtractor` *or* GrepEmailExtractor can be used
+and WebdomainExtractor will still work. This is important because it allows us to easily
+substitute in and out extractors that work differently but return data in the same format
 
 
 ## Sample Framework Usage ##
