@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 import unittest
 import xmltodict
@@ -29,106 +30,153 @@ class TestExtractionRunner(unittest.TestCase):
       f3.close()
       self.f3_path = f3_path
 
+      self.results_dir = tempfile.mkdtemp()
+
    def tearDown(self):
       os.remove(self.f1_path)
       os.remove(self.f2_path)
       os.remove(self.f3_path)
       os.rmdir(self.file_dir)
 
+      shutil.rmtree(self.results_dir)
 
    def test_nothing_run(self):
       runner = ExtractionRunner()
-      xml = runner.run(u'data!')
-      result = xmltodict.parse(xml)
-      self.assertTrue('extraction' in result)
-      self.assertTrue('filters' in result['extraction'])
-      self.assertTrue('extractors' in result['extraction'])
-      # ensure filename isn't in runs from data
-      self.assertTrue('@file' not in result['extraction'])
+      runner.run(u'data!', output_dir=self.results_dir)
+      # should be no files in output_dir
+      self.assertFalse(os.listdir(self.results_dir))
 
    def test_run_from_file(self):
       runner = ExtractionRunner()
       runner.add_runnable(SelfExtractor)
-      xml = runner.run_from_file(self.f1_path)
-      result = xmltodict.parse(xml)
-      self.assertTrue('SelfExtractor' in result['extraction']['extractors'])
-      self.assertTrue('result' in result['extraction']['extractors']['SelfExtractor'])
-      self.assertEqual(result['extraction']['extractors']['SelfExtractor']['result'], 'file 1')
+      runner.run_from_file(self.f1_path, output_dir=self.results_dir)
 
-      # ensure filename present
-      self.assertTrue('@file' in result['extraction'])
+      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
+      self.assertTrue(os.path.isfile(result_file_path))
 
-   def test_run_batch(self):
-      runner = ExtractionRunner()
-      runner.add_runnable(SelfExtractor)
-      xmls = list(runner.run_batch(['test 1', 'test 2']))
-      results = [xmltodict.parse(x) for x in xmls]
-      self.assertEqual(results[0]['extraction']['extractors']['SelfExtractor']['result'], 'test 1')
-      self.assertEqual(results[1]['extraction']['extractors']['SelfExtractor']['result'], 'test 2')
+      xml = ET.parse(result_file_path).getroot()
+      self.assertEqual(xml.text, 'file 1')
       
 
-   def test_run_batch_from_glob(self):
+   def test_run_batch(self):
+      batch = ['test 0', 'test 1', 'test 2']
       runner = ExtractionRunner()
       runner.add_runnable(SelfExtractor)
+      runner.run_batch(batch, output_dir = self.results_dir)
 
-      glob = self.file_dir + '/*.txt'
-      xmls = list(runner.run_batch_from_glob(glob))
-      results = dict([(x[0], xmltodict.parse(x[1])) for x in xmls])
-      self.assertEqual(len(results), 2)
-      self.assertTrue('file 1' in results[self.f1_path]['extraction']['extractors']['SelfExtractor']['result'])
-      self.assertTrue('file 2' in results[self.f2_path]['extraction']['extractors']['SelfExtractor']['result'])
-      self.assertFalse(self.f3_path in results)
-      self.assertTrue('@file' in results[self.f1_path]['extraction'])
-      self.assertTrue('@file' in results[self.f2_path]['extraction'])
+      for index, text in enumerate(batch):
+         result_file_path = os.path.join(self.results_dir, str(index), 'SelfExtractor.xml')
+         self.assertTrue(os.path.isfile(result_file_path))
+         xml = ET.parse(result_file_path).getroot()
+         self.assertEqual(xml.text, text)
 
-   def test_extractor_errors_cascade(self):
+   # def test_run_batch_from_glob(self):
+      # glob = self.file_dir + '/*.txt'
+      # xmls = list(runner.run_batch_from_glob(glob))
+      # results = dict([(x[0], xmltodict.parse(x[1])) for x in xmls])
+      # self.assertEqual(len(results), 2)
+      # self.assertTrue('file 1' in results[self.f1_path]['extraction']['extractors']['SelfExtractor']['result'])
+      # self.assertTrue('file 2' in results[self.f2_path]['extraction']['extractors']['SelfExtractor']['result'])
+      # self.assertFalse(self.f3_path in results)
+      # self.assertTrue('@file' in results[self.f1_path]['extraction'])
+      # self.assertTrue('@file' in results[self.f2_path]['extraction'])
+
+   def test_extractor_errors_cascade_no_write_dep_errors(self):
       runner = ExtractionRunner()
       runner.add_runnable(ErrorExtractor)
       runner.add_runnable(DepsOnErrorExtractor)
       runner.add_runnable(DepsOnErrorExtractor2)
 
-      xml = runner.run('data')
-      result = xmltodict.parse(xml)
-      self.assertTrue('error' in result['extraction']['extractors']['ErrorExtractor'])
-      self.assertFalse('result' in result['extraction']['extractors']['ErrorExtractor'])
-      self.assertTrue('error' in result['extraction']['extractors']['DepsOnErrorExtractor'])
-      self.assertFalse('result' in result['extraction']['extractors']['DepsOnErrorExtractor'])
-      self.assertTrue('error' in result['extraction']['extractors']['DepsOnErrorExtractor2'])
-      self.assertFalse('result' in result['extraction']['extractors']['DepsOnErrorExtractor2'])
+      runner.run('Test', output_dir = self.results_dir)
+      ee_path = os.path.join(self.results_dir, 'ErrorExtractor.xml')
+      self.assertTrue(os.path.isfile(ee_path))
+      self.assertEqual(ET.parse(ee_path).getroot().tag, 'error')
+
+      doee_path = os.path.join(self.results_dir, 'DepsOnErrorExtractor.xml')
+      self.assertFalse(os.path.isfile(doee_path))
+      doee2_path = os.path.join(self.results_dir, 'DepsOnErrorExtractor2.xml')
+
+   def test_extractor_errors_cascade_yes_write_dep_errors(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(ErrorExtractor)
+      runner.add_runnable(DepsOnErrorExtractor)
+      runner.add_runnable(DepsOnErrorExtractor2)
+
+      runner.run('Test', output_dir = self.results_dir, write_dep_errors = True)
+      ee_path = os.path.join(self.results_dir, 'ErrorExtractor.xml')
+      self.assertTrue(os.path.isfile(ee_path))
+      self.assertEqual(ET.parse(ee_path).getroot().tag, 'error')
+
+      doee_path = os.path.join(self.results_dir, 'DepsOnErrorExtractor.xml')
+      self.assertTrue(os.path.isfile(doee_path))
+      self.assertEqual(ET.parse(doee_path).getroot().tag, 'error')
+
+      doee2_path = os.path.join(self.results_dir, 'DepsOnErrorExtractor2.xml')
+      self.assertTrue(os.path.isfile(doee2_path))
+      self.assertEqual(ET.parse(doee2_path).getroot().tag, 'error')
+
       
    def test_filter_results_cascade(self):
       runner = ExtractionRunner()
       runner.add_runnable(FailFilter)
       runner.add_runnable(FailingDepsExtractor)
 
-      xml = runner.run('data')
-      result = xmltodict.parse(xml)
-      self.assertTrue('False' in result['extraction']['filters']['FailFilter']['result'])
-      self.assertTrue('error' in result['extraction']['extractors']['FailingDepsExtractor'])
+      runner.run('Test', output_dir = self.results_dir)
+      fde_path = os.path.join(self.results_dir, 'FailingDepsExtractor.xml')
+      self.assertFalse(os.path.isfile(fde_path))
+
+      runner.run('Test', output_dir = self.results_dir, write_dep_errors=True)
+      self.assertTrue(os.path.isfile(fde_path))
+      self.assertEqual(ET.parse(fde_path).getroot().tag, 'error')
 
       runner = ExtractionRunner()
       runner.add_runnable(PassFilter)
       runner.add_runnable(PassingDepsExtractor)
+      
+      runner.run('Test', output_dir = self.results_dir)
+      pde_path = os.path.join(self.results_dir, 'PassingDepsExtractor.xml')
+      self.assertTrue(os.path.isfile(pde_path))
+      self.assertEqual(ET.parse(pde_path).getroot().text, 'Test')
+      os.remove(pde_path)
 
-      xml = runner.run('data')
-      result = xmltodict.parse(xml)
-      self.assertTrue('True' in result['extraction']['filters']['PassFilter']['result'])
-      self.assertTrue('result' in result['extraction']['extractors']['PassingDepsExtractor'])
+      runner.run('Test', output_dir = self.results_dir, write_dep_errors=True)
+      self.assertTrue(os.path.isfile(pde_path))
+      self.assertEqual(ET.parse(pde_path).getroot().text, 'Test')
 
-   def test_include_in_output(self):
+   def test_output_results_option_defaults_to_true(self):
       runner = ExtractionRunner()
-      runner.add_runnable(FailFilter)
-      runner.add_runnable(PassFilter)
-      xml = runner.run('data')
-      result = xmltodict.parse(xml)
-      self.assertTrue('FailFilter' in result['extraction']['filters'])
+      runner.add_runnable(SelfExtractor)
+      runner.run('test', output_dir = self.results_dir)
 
+      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
+      self.assertTrue(os.path.isfile(result_file_path))
+
+   def test_output_results_option_when_false(self):
       runner = ExtractionRunner()
-      runner.add_runnable(FailFilter, include_in_output=False)
-      runner.add_runnable(PassFilter)
-      xml = runner.run('data')
-      result = xmltodict.parse(xml)
-      self.assertFalse('FailFilter' in result['extraction']['filters'])
+      runner.add_runnable(SelfExtractor, output_results=False)
+      runner.run('test', output_dir = self.results_dir)
+
+      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
+      self.assertFalse(os.path.isfile(result_file_path))
+
+
+      
+
+   def test_output_results_option_defaults_to_true(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(SelfExtractor)
+      runner.run('test', output_dir = self.results_dir)
+
+      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
+      self.assertTrue(os.path.isfile(result_file_path))
+
+   def test_output_results_option_when_false(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(SelfExtractor, output_results=False)
+      runner.run('test', output_dir = self.results_dir)
+
+      result_file_path = os.path.join(self.results_dir, 'SelfExtractor.xml')
+      self.assertFalse(os.path.isfile(result_file_path))
 
 
       

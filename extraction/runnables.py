@@ -17,14 +17,14 @@ class Base(object):
       for filter in filter_deps:
          result = dep_results[filter]
          if isinstance(result, RunnableError):
-            return RunnableError('Did not run because dependency filter %s errored' % filter.__name__)
+            return DependencyError('Did not run because dependency filter %s errored' % filter.__name__)
          elif not result:
-            return RunnableError('Did not run because dependency filter %s failed' % filter.__name__)
+            return DependencyError('Did not run because dependency filter %s failed' % filter.__name__)
 
       for extractor in extractor_deps:
          result = dep_results[extractor]
          if isinstance(result, RunnableError):
-            return RunnableError('Did not run because dependency extractor %s errored' % extractor.__name__)
+            return DependencyError('Did not run because dependency extractor %s errored' % extractor.__name__)
 
       return None
 
@@ -98,3 +98,10 @@ class RunnableError(Exception):
 
    def __unicode__(self):
       return "RunnableError: {0}".format(self.msg)
+
+class DependencyError(RunnableError):
+   def __init__(self, msg):
+      self.msg = msg
+
+   def __unicode__(self):
+      return "DependencyError: {0}".format(self.msg)
