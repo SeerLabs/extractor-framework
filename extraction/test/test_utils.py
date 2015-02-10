@@ -1,6 +1,7 @@
 import unittest
 import subprocess32 as subprocess
 import extraction.utils as utils
+import os
 
 class TestUtils(unittest.TestCase):
    def setUp(self):
@@ -23,6 +24,14 @@ class TestUtils(unittest.TestCase):
       # This shouldn't timeout and thus shouldn't raise an error
       utils.external_process(['sleep', '3'])
 
+   def test_temp_file(self):
+      data = 'test'
+      file_path = utils.temp_file(data, suffix='.food')
 
+      self.assertTrue(os.path.isfile(file_path))
+      self.assertEqual(os.path.splitext(file_path)[1], '.food')
+      self.assertEqual(open(file_path, 'r').read(), 'test')
 
-      
+      os.remove(file_path)
+      self.assertFalse(os.path.isfile(file_path))
+

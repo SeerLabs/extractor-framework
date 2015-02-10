@@ -39,11 +39,19 @@ def external_process(process_args, input_data='', timeout=None):
 
 
 def temp_file(data, suffix=''):
+   '''
+   Creates a file in a temporary directory and writes data to it.
+   Note: Please delete the file when it isn't needed anymore!
+
+   Arguments:
+      data -- the data to write to the file
+      suffix -- a string the filename should end with (optional)
+
+   Returns:
+      The path to the file
+   '''
    handle, file_path = tempfile.mkstemp(suffix=suffix)
    f = os.fdopen(handle, 'w')
    f.write(data)
    f.close()
    return file_path
-
-
-
