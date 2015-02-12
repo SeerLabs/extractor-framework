@@ -2,7 +2,6 @@ import os
 import shutil
 import tempfile
 import unittest
-import xmltodict
 from extraction.test.extractors import *
 from extraction.test.filters import *
 from extraction.core import ExtractionRunner

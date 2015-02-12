@@ -1,4 +1,3 @@
-import xmltodict
 import collections
 
 class Base(object):

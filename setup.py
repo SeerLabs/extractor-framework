@@ -5,5 +5,5 @@ setup(name="Extractor Framework",
       description="A small framework to run modular extractors",
       author="Jason Killian",
       packages=['extraction'],
-      requires=['subprocess32', 'xmltodict']
+      requires=['subprocess32']
       )
