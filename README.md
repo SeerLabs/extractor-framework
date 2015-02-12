@@ -5,10 +5,8 @@
 * [subprocess32 package](https://pypi.python.org/pypi/subprocess32) (`pip install subprocess32 --user`)
 
 ## Installation ##
-Clone this repo to your local machine anywhere
-From the project root directory, run:
-
-    python setup.py install --user
+1. Clone this repo to your local machine anywhere
+2. From the project root directory, run `python setup.py install --user`
 
 (The --user option is optional, I just like to 
 install packages only for my user account personally)
@@ -22,8 +20,7 @@ install packages only for my user account personally)
 
 #### Defining Filters and Extractors ####
 
-```
-#!python
+```python
 
 # import needed classes from extraction.runnable module
 from extraction.runnables import Extractor, Filter, RunnableError, ExtractionResult
