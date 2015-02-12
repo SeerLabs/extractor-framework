@@ -2,9 +2,7 @@
 
 ## Prerequisites ##
 * Python 2.6 (or Python 2.7 should work probably)
-* [xmltodict package](https://github.com/martinblech/xmltodict)
-* [defusedxml package](https://pypi.python.org/pypi/defusedxml)
-* [subprocess32 package](https://pypi.python.org/pypi/subprocess32)
+* [subprocess32 package](https://pypi.python.org/pypi/subprocess32) (`pip install subprocess32 --user`)
 
 ## Installation ##
 Clone this repo to your local machine anywhere
@@ -17,7 +15,12 @@ install packages only for my user account personally)
 
 ## Using the framework ##
 
-#### Creating Filters and Extractors ####
+### Main Steps ###
+1. Define Filters and Extractors (both referred to as Runnables)
+2. Setup ExtractionRunner to run Runnables
+3. Run ExtractionRunner on data or on a file
+
+#### Defining Filters and Extractors ####
 
 ```
 #!python
@@ -100,6 +103,8 @@ class GrepEmailExtractor(EmailExtractor):
    def extract(self, data, dep_results):
       ...
 
+# This extractor doesn't care what specfic EmailExtractor is run before it
+# as long as one of them is
 class WebdomainExtractor(Extractor):
    @staticmethod
    def dependencies():
@@ -109,10 +114,42 @@ class WebdomainExtractor(Extractor):
       ...
 ```
 
-In this example above, either `AwkEmailExtractor` *or* GrepEmailExtractor can be used
+In this example above, either `AwkEmailExtractor` *or* `GrepEmailExtractor` can be used
 and WebdomainExtractor will still work. This is important because it allows us to easily
 substitute in and out extractors that work differently but return data in the same format
 
+#### Setting up an ExtractionRunner to run Runnables ####
+
+```python
+from extraction.core import ExtractionRunner
+
+runner = ExtractionRunner()
+# runnables *must* be added right now in the order they should be run
+# pass the Class object in to the method, not an instance of the class
+
+# Filters have no output
+runner.add_runnable(EnglishFilter)
+# Extractors write their output to files
+runner.add_runnable(TextExtractor)
+# But this can be disabled:
+runner.add_runnable(GrepEmailExtractor, output_results=False)
+```
+
+#### Running a ExtractionRunner on data or on a file ####
+
+```python
+# After setting up the ExtractionRunner:
+runner.run('string of data here', '/dir/for/results')
+# Or, run on a file
+runner.run_from_file('/my/file.pdf')                                 # results will get written to same directory as file
+runner.run_from_file('/my/file.pdf', output_dir='/dir/for/results')  # or specify a directory
+# Or, run on lots of data
+runner.run_from_batch(['data 0', 'data 1'], output_dir='/director/for/results')
+# Results are in /dir/for/results/0 and /dir/for/results/1
+
+# To come in the future!
+# runner.run_from_glob
+```
 
 ## Sample Framework Usage ##
 For another example of usage, see extraction/test/sample.py
