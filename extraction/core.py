@@ -11,10 +11,6 @@ class ExtractionRunner(object):
       self.runnable_props = {}
 
    def add_runnable(self, runnable, output_results=True):
-      #TODO we should construct a graph of filters and extractors
-      # then if there are any circular dependencies we can throw an error
-      # we can also remove the requirement to add runnables in order
-      # these comments also apply to the add_extractor method
       self.runnable_props[runnable] = {
             'output_results': output_results
          }
@@ -27,7 +23,20 @@ class ExtractionRunner(object):
 
 
    def run(self, data, output_dir, **kwargs):
+      """Runs the extractor (with all runnables previously added) on data
+
+      Args:
+         data: A string of data. This will be passed as is to all filters and extractors
+         output_dir: The directory that the result xml and other files will be written to
+         **kwargs: Optional keyword arguments
+            write_dep_errors: A Boolean. If True, extractors that fail because dependencies fail
+               will still write a short xml file with this error to disk. (Good for clarity)
+               If False, extractors with failing dependencies won't write anything to disk
+            file_prefix: A string to prepend to all filenames that get written to disk
+
+      """
       write_dep_errors = kwargs.get('write_dep_errors', False)
+      file_prefix = kwargs.get('file_prefix', '')
 
       results = {}
       for runnable in self.runnables:
@@ -48,9 +57,26 @@ class ExtractionRunner(object):
       for runnable in results:
          if self.runnable_props[runnable]['output_results']: 
             result = results[runnable]
-            self._output_result(runnable, result, output_dir, write_dep_errors)
+            self._output_result(runnable, result, output_dir, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
 
    def run_from_file(self, file_path, output_dir=None, **kwargs):
+      """Runs the extractor on the file at file_path
+
+      Reads the file at file_path from disk into a string. Then runs the extractors
+      on this data string.
+
+      Args:
+         file_path: Reads this file and passes its data to the extractors and filters
+         output_dir: An optional string that specifies the directory to write the results to
+            If this isn't provided, results will be written to the same directory as the file
+         **kwargs: Optional keyword arguments
+            write_dep_errors: A Boolean. If True, extractors that fail because dependencies fail
+               will still write a short xml file with this error to disk. (Good for clarity)
+               If False, extractors with failing dependencies won't write anything to disk
+            file_prefix: A string to prepend to all filenames that get written to disk
+
+      """
+
       if not output_dir:
          output_dir = os.path.dirname(file_path)
 
@@ -78,7 +104,7 @@ class ExtractionRunner(object):
 
       return dependency_results
 
-   def _output_result(self, runnable, result, output_dir, write_dep_errors):
+   def _output_result(self, runnable, result, output_dir, file_prefix='', write_dep_errors=False):
       if isinstance(result, RunnableError):
 
          if isinstance(result, DependencyError) and not write_dep_errors:
@@ -87,18 +113,19 @@ class ExtractionRunner(object):
          error = ET.Element('error')
          error.text = result.msg
          result = ET.ElementTree(error)
-         result_path = os.path.join(output_dir,'{0}.xml'.format(runnable.__name__))
+         result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
          result.write(result_path, encoding='UTF-8')
       elif isinstance(result, ExtractorResult):
          files_dict = result.files
          xml_result = ET.ElementTree(result.xml_result)
 
-         result_path = os.path.join(output_dir,'{0}.xml'.format(runnable.__name__))
+         result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
 
          xml_result.write(result_path, encoding='UTF-8')
 
          if files_dict:
             for file_name, file_data in files_dict.items():
+               file_name = file_prefix + file_name
                f = open(os.path.join(output_dir, file_name), 'wb')
                f.write(file_data)
                f.close()

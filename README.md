@@ -140,6 +140,8 @@ runner.run('string of data here', '/dir/for/results')
 # Or, run on a file
 runner.run_from_file('/my/file.pdf')                                 # results will get written to same directory as file
 runner.run_from_file('/my/file.pdf', output_dir='/dir/for/results')  # or specify a directory
+# You can specify a prefix for all result files
+runner.run_from_file('/my/file001.pdf', file_prefix = '001.')
 # Or, run on lots of data
 runner.run_from_batch(['data 0', 'data 1'], output_dir='/director/for/results')
 # Results are in /dir/for/results/0 and /dir/for/results/1

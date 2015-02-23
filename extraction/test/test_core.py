@@ -178,4 +178,16 @@ class TestExtractionRunner(unittest.TestCase):
       runner = ExtractionRunner()
       runner.add_runnable(DepsOnTestFileExtractor)
       self.assertRaises(LookupError, runner.run, 'whatever', output_dir=self.results_dir)
-      
+
+   def test_file_prefix_option_works(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(ImplTestFileExtractor)
+      runner.run('whatever', output_dir=self.results_dir, file_prefix = 'prefix.')
+
+      result_file_path = os.path.join(self.results_dir, 'prefix.test.txt')
+      self.assertTrue(os.path.isfile(result_file_path))
+      self.assertEqual(open(result_file_path, 'r').read(), 'test test')
+
+
+
+
