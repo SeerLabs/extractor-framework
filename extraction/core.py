@@ -11,6 +11,19 @@ class ExtractionRunner(object):
       self.runnable_props = {}
 
    def add_runnable(self, runnable, output_results=True):
+      """Adds runnable to the extractor to be run when the extractor is run
+
+      Runnables are ran in the order they are added! So make sure runnables that depend on others
+      are run after what they depend on.
+
+      Args:
+         runnable: A class that is a subclass of extraction.runnables.Extractor
+            or a subclass of extraction.runnables.Filter
+         output_results: Optional boolean that indicates if the results from the runnable should be
+            written to disk when the extractor runs. If False, the results will not be written and will
+            just be used internally during extraction
+      """
+
       self.runnable_props[runnable] = {
             'output_results': output_results
          }
