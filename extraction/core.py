@@ -81,7 +81,10 @@ class ExtractionRunner(object):
          dep_results = self._select_dependency_results(runnable.dependencies(), results)
 
          try:
-            result = runnable().run(data, dep_results)
+            instance = runnable()
+            instance.run_name = run_name
+            instance.logger = logging.getLogger('runnables.{0}'.format(runnable.__name__))
+            result = instance.run(data, dep_results)
          except RunnableError as err:
             result = err
 

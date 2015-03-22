@@ -27,6 +27,9 @@ class Base(object):
 
       return None
 
+   def log(self, msg):
+      self.logger.info('{0} for run {1}: {2}'.format(self.__class__.__name__, self.run_name, msg))
+
 class Filter(Base):
    def filter(self, data, dep_results):
       """
