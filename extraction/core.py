@@ -1,7 +1,9 @@
 import glob
 import os
+import logging
 import xml.etree.ElementTree as ET
 from extraction.runnables import *
+import extraction.utils as utils
 
 class ExtractionRunner(object):
    def __init__(self):
@@ -9,6 +11,9 @@ class ExtractionRunner(object):
       self.extractors = []
       self.runnables = []
       self.runnable_props = {}
+      self.result_logger = logging.getLogger('result')
+      self.runnable_logger = logging.getLogger('runnables')
+ 
 
    def add_runnable(self, runnable, output_results=True):
       """Adds runnable to the extractor to be run when the extractor is run
@@ -34,6 +39,13 @@ class ExtractionRunner(object):
       if issubclass(runnable, Filter):
          self.filters.append(runnable)
 
+   def enable_logging(self, result_log_path, runnable_log_path):
+      result_log_handler = logging.handlers.TimedRotatingFileHandler(result_log_path, when='M')
+      runnable_log_handler = logging.handlers.TimedRotatingFileHandler(runnable_log_handler, when='M')
+
+      self.result_logger.addHandler(result_log_handler)
+      self.runnable_log_handler.addHandler(runnable_log_handler)
+
 
    def run(self, data, output_dir, **kwargs):
       """Runs the extractor (with all runnables previously added) on data
@@ -50,6 +62,7 @@ class ExtractionRunner(object):
       """
       write_dep_errors = kwargs.get('write_dep_errors', False)
       file_prefix = kwargs.get('file_prefix', '')
+      run_name = kwargs.get('run_name', utils.random_letters(8))
 
       results = {}
       for runnable in self.runnables:
@@ -67,10 +80,13 @@ class ExtractionRunner(object):
       if not os.path.exists(output_dir):
          os.makedirs(output_dir)
 
+      any_errors = False
       for runnable in results:
          if self.runnable_props[runnable]['output_results']: 
             result = results[runnable]
-            self._output_result(runnable, result, output_dir, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
+            if isinstance(result, RunnableError): any_errors = True
+            self._output_result(runnable, result, output_dir, run_name, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
+      self.result_logger.info('{0} finished with {1}'.format(run_name, 'no errors' if not any_errors else 'errors'))
 
    def run_from_file(self, file_path, output_dir=None, **kwargs):
       """Runs the extractor on the file at file_path
@@ -93,11 +109,15 @@ class ExtractionRunner(object):
       if not output_dir:
          output_dir = os.path.dirname(file_path)
 
-      return self.run(open(file_path, 'rb').read(), output_dir, **kwargs)
+      return self.run(open(file_path, 'rb').read(), output_dir, run_name=file_path, **kwargs)
 
    def run_batch(self, list_of_data, output_dir, **kwargs):
+      batch_id = utils.random_letters(10)
+      self.result_logger.info("Starting Batch {0} Run".format(batch_id))
       for index, data in enumerate(list_of_data):
-         self.run(data, os.path.join(output_dir, str(index)), **kwargs)
+         run_name = 'Batch {0} Item {1}'.format(batch_id, index)
+         self.run(data, os.path.join(output_dir, str(index)), run_name=run_name, **kwargs)
+      self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
    #TODO figure out what output_dir should be...
    #def run_batch_from_glob(self, dir_glob, output_dir)
@@ -117,11 +137,12 @@ class ExtractionRunner(object):
 
       return dependency_results
 
-   def _output_result(self, runnable, result, output_dir, file_prefix='', write_dep_errors=False):
+   def _output_result(self, runnable, result, output_dir, run_name, file_prefix='', write_dep_errors=False):
       if isinstance(result, RunnableError):
-
          if isinstance(result, DependencyError) and not write_dep_errors:
-            return
+            return 
+
+         self.result_logger.info('{0} error: {1}'.format(run_name, result.msg)) 
 
          error = ET.Element('error')
          error.text = result.msg

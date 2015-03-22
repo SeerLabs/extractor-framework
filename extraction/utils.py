@@ -2,6 +2,8 @@ import subprocess32 as subprocess
 import threading
 import signal
 import tempfile
+import random
+import string
 import os
 
 def external_process(process_args, input_data='', timeout=None):
@@ -55,3 +57,6 @@ def temp_file(data, suffix=''):
    f.write(data)
    f.close()
    return file_path
+
+def random_letters(length):
+   return ''.join(random.choice(string.letters) for i in range(length))
