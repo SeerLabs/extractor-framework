@@ -1,6 +1,7 @@
 import glob
 import os
 import logging
+import logging.handlers
 import xml.etree.ElementTree as ET
 from extraction.runnables import *
 import extraction.utils as utils
@@ -13,6 +14,8 @@ class ExtractionRunner(object):
       self.runnable_props = {}
       self.result_logger = logging.getLogger('result')
       self.runnable_logger = logging.getLogger('runnables')
+      self.result_logger.setLevel(logging.INFO)
+      self.runnable_logger.setLevel(logging.INFO)
  
 
    def add_runnable(self, runnable, output_results=True):
@@ -40,11 +43,18 @@ class ExtractionRunner(object):
          self.filters.append(runnable)
 
    def enable_logging(self, result_log_path, runnable_log_path):
-      result_log_handler = logging.handlers.TimedRotatingFileHandler(result_log_path, when='M')
-      runnable_log_handler = logging.handlers.TimedRotatingFileHandler(runnable_log_handler, when='M')
+      result_log_path = os.path.abspath(os.path.expanduser(result_log_path))
+      runnable_log_path = os.path.abspath(os.path.expanduser(runnable_log_path))
+
+      result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='M')
+      runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='M')
+
+      formatter = logging.Formatter('%(asctime)s: %(message)s')
+      result_log_handler.setFormatter(formatter)
+      runnable_log_handler.setFormatter(formatter)
 
       self.result_logger.addHandler(result_log_handler)
-      self.runnable_log_handler.addHandler(runnable_log_handler)
+      self.runnable_logger.addHandler(runnable_log_handler)
 
 
    def run(self, data, output_dir, **kwargs):
@@ -63,6 +73,8 @@ class ExtractionRunner(object):
       write_dep_errors = kwargs.get('write_dep_errors', False)
       file_prefix = kwargs.get('file_prefix', '')
       run_name = kwargs.get('run_name', utils.random_letters(8))
+
+      self.result_logger.info('{0} started'.format(run_name))
 
       results = {}
       for runnable in self.runnables:
