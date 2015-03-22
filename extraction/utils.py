@@ -65,7 +65,11 @@ def temp_file(data, suffix=''):
 def random_letters(length):
    return ''.join(random.choice(string.letters) for i in range(length))
 
+class NullHandler(logging.Handler):
+   def emit(self, record):
+      pass
 
+# Code from http://stackoverflow.com/a/25387192/3124288
 class ParallelTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, postfix = ".log"):
 

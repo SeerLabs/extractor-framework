@@ -12,10 +12,13 @@ class ExtractionRunner(object):
       self.extractors = []
       self.runnables = []
       self.runnable_props = {}
+
       self.result_logger = logging.getLogger('result')
       self.runnable_logger = logging.getLogger('runnables')
       self.result_logger.setLevel(logging.INFO)
       self.runnable_logger.setLevel(logging.INFO)
+      self.result_logger.addHandler(utils.NullHandler())
+      self.runnable_logger.addHandler(utils.NullHandler())
  
 
    def add_runnable(self, runnable, output_results=True):
@@ -43,11 +46,23 @@ class ExtractionRunner(object):
          self.filters.append(runnable)
 
    def enable_logging(self, result_log_path, runnable_log_path):
+      """Causes the extraction runner to keep logs of what it does
+      If a log file from the same day exists, it is used. If not, new logs files are created for the current day
+
+      Args:
+         result_log_path: String file path that indicates where to store the results log.
+            This log stores when processing starts and ends for each run. It also notes if any errors occur during the run.
+            For example, if this is '/path/to/result' the logs will be stored in files named '/path/to/log.[year]-[month]-[day].log'
+         runnable_log_path: String file path that indicates where to store the runnables log.
+            This log contains any log messages that runnables log.
+            Path and day rotation is handled the same as with the results log
+      """
+
       result_log_path = os.path.abspath(os.path.expanduser(result_log_path))
       runnable_log_path = os.path.abspath(os.path.expanduser(runnable_log_path))
 
-      result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='D')
-      runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='D')
+      result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='D', delay=True)
+      runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='D', delay=True)
 
       formatter = logging.Formatter('%(asctime)s: %(message)s')
       result_log_handler.setFormatter(formatter)
@@ -55,6 +70,13 @@ class ExtractionRunner(object):
 
       self.result_logger.addHandler(result_log_handler)
       self.runnable_logger.addHandler(runnable_log_handler)
+
+   def disable_logging(self):
+      self.result_logger.handlers = []
+      self.runnable_logger.handlers = []
+
+      self.result_logger.addHandler(utils.NullHandler())
+      self.runnable_logger.addHandler(utils.NullHandler())
 
 
    def run(self, data, output_dir, **kwargs):
@@ -68,6 +90,8 @@ class ExtractionRunner(object):
                will still write a short xml file with this error to disk. (Good for clarity)
                If False, extractors with failing dependencies won't write anything to disk
             file_prefix: A string to prepend to all filenames that get written to disk
+            run_name: A string used in logs that identifies what data is being processed
+               If this argument isn't displayed, a random string will be used
 
       """
       write_dep_errors = kwargs.get('write_dep_errors', False)
