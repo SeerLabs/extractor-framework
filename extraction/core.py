@@ -46,8 +46,8 @@ class ExtractionRunner(object):
       result_log_path = os.path.abspath(os.path.expanduser(result_log_path))
       runnable_log_path = os.path.abspath(os.path.expanduser(runnable_log_path))
 
-      result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='M')
-      runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='M')
+      result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='D')
+      runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='D')
 
       formatter = logging.Formatter('%(asctime)s: %(message)s')
       result_log_handler.setFormatter(formatter)
