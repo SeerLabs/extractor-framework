@@ -98,6 +98,8 @@ class AwkEmailExtractor(EmailExtractor):
 
 class GrepEmailExtractor(EmailExtractor):
    def extract(self, data, dep_results):
+      # Extractors and filters can log messages/anomalies by using the log methods
+      self.log('Grep Extractor Running')
       ...
 
 # This extractor doesn't care what specfic EmailExtractor is run before it
@@ -121,6 +123,9 @@ substitute in and out extractors that work differently but return data in the sa
 from extraction.core import ExtractionRunner
 
 runner = ExtractionRunner()
+# You can make the extraction runner write to log files by enabling logging:
+runner.enable_logging('path/to/log/file', 'path/to/another/log/file')
+
 # runnables *must* be added right now in the order they should be run
 # pass the Class object in to the method, not an instance of the class
 
