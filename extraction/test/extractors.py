@@ -12,6 +12,13 @@ class SelfExtractor(Extractor):
       ele.text = data
       return ExtractorResult(ele)
 
+class SelfLogExtractor(Extractor):
+   def extract(self, data, dep_results):
+      self.log(data)
+      ele = ET.Element('result')
+      ele.text = data
+      return ExtractorResult(ele)
+
 class ErrorExtractor(Extractor):
    def extract(self, data, dep_results):
       raise RunnableError('I always Error!')

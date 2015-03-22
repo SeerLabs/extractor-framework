@@ -1,4 +1,5 @@
 import os
+import glob
 import shutil
 import tempfile
 import unittest
@@ -187,6 +188,46 @@ class TestExtractionRunner(unittest.TestCase):
       result_file_path = os.path.join(self.results_dir, 'prefix.test.txt')
       self.assertTrue(os.path.isfile(result_file_path))
       self.assertEqual(open(result_file_path, 'r').read(), 'test test')
+
+   def test_logs_work(self):
+      runner = ExtractionRunner()
+      results_log_path = os.path.join(self.results_dir, 'results')
+      runnables_log_path = os.path.join(self.results_dir, 'runnables')
+
+      runner.enable_logging(results_log_path, runnables_log_path)
+      runner.add_runnable(SelfLogExtractor)
+      runner.run('abc', output_dir = self.results_dir, run_name = 'RUN!')
+
+      results_log = glob.glob(results_log_path + "*.log")[0]
+      log_data = open(results_log, 'r').read()
+      self.assertTrue('no errors' in log_data)
+      self.assertTrue('RUN!' in log_data)
+
+      runnables_log = glob.glob(runnables_log_path + "*.log")[0]
+      log_data = open(runnables_log, 'r').read()
+      self.assertTrue('abc' in log_data)
+      self.assertTrue('SelfLogExtractor' in log_data)
+      self.assertTrue('RUN!' in log_data)
+
+   def test_disable_logs_works(self):
+      runner = ExtractionRunner()
+      results_log_path = os.path.join(self.results_dir, 'results')
+      runnables_log_path = os.path.join(self.results_dir, 'runnables')
+
+      runner.enable_logging(results_log_path, runnables_log_path)
+      runner.disable_logging()
+      runner.add_runnable(SelfLogExtractor)
+      runner.run('abc', output_dir = self.results_dir, run_name = 'RUN!')
+
+      log_list = glob.glob(results_log_path + "*.log")
+      self.assertFalse(log_list) 
+      log_list = glob.glob(runnables_log_path + "*.log")
+      self.assertFalse(log_list) 
+
+
+
+
+
 
 
 
