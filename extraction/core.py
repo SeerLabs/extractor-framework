@@ -61,6 +61,10 @@ class ExtractionRunner(object):
       result_log_path = os.path.abspath(os.path.expanduser(result_log_path))
       runnable_log_path = os.path.abspath(os.path.expanduser(runnable_log_path))
 
+
+      if not os.path.exists(os.path.dirname(result_log_path)): os.makedirs(os.path.dirname(result_log_path))
+      if not os.path.exists(os.path.dirname(runnable_log_path)): os.makedirs(os.path.dirname(runnable_log_path))
+
       result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='D', delay=True)
       runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='D', delay=True)
 
