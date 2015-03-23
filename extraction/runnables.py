@@ -47,7 +47,7 @@ class Base(object):
       except Exception as e:
          e_info = sys.exc_info()
          self.log(''.join(traceback.format_exception(*e_info)))
-         return  RunnableError(str(e))
+         return  RunnableError('{0}: {1}'.format(e.__class__.__name__, e))
 
 class Filter(Base):
    def filter(self, data, dep_results):
