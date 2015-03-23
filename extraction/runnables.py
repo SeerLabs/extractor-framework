@@ -30,6 +30,23 @@ class Base(object):
    def log(self, msg):
       self.logger.info('{0} for run {1}: {2}'.format(self.__class__.__name__, self.run_name, msg))
 
+   def run(self, data, dep_results):
+      dep_error =  self.check_dep_errors(dep_results)
+      if dep_error:
+         return dep_error
+
+      try:
+         if isinstance(self, Filter):
+            return self.filter(data, dep_results)
+         elif isinstance(self, Extractor): 
+            return self.extract(data, dep_results)
+      except RunnableError as r:
+         return r
+      except Exception as e:
+         e_info = sys.exc_info()
+         self.log(traceback.format_exception(*e_info))
+         return  RunnableError(str(e))
+
 class Filter(Base):
    def filter(self, data, dep_results):
       """
@@ -52,14 +69,6 @@ class Filter(Base):
       """
       return False
 
-   def run(self, data, dep_results):
-      dep_error =  self.check_dep_errors(dep_results)
-      if dep_error:
-         return dep_error
-
-      return self.filter(data, dep_results)
-
-
 class Extractor(Base):
    def extract(self, data, dep_results):
       """
@@ -81,14 +90,7 @@ class Extractor(Base):
       """
       raise RunnableError('Override this method')
 
-   def run(self, data, dep_results):
-      dep_error = self.check_dep_errors(dep_results)
-      if dep_error:
-         return dep_error
-
-      return self.extract(data, dep_results)    
-
-
+# Define namedtuple class for results form extractions
 ExtractorResult = collections.namedtuple('ExtractorResult', 'xml_result files')
 # Set files field to be None be default so it's optional
 ExtractorResult.__new__.__defaults__ = (None,)
