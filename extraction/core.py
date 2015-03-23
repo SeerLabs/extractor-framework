@@ -1,7 +1,7 @@
 import glob
+import sys
 import os
 import logging
-import logging.handlers
 import xml.etree.ElementTree as ET
 from extraction.runnables import *
 import extraction.utils as utils
@@ -17,8 +17,11 @@ class ExtractionRunner(object):
       self.runnable_logger = logging.getLogger('runnables')
       self.result_logger.setLevel(logging.INFO)
       self.runnable_logger.setLevel(logging.INFO)
-      self.result_logger.addHandler(utils.NullHandler())
-      self.runnable_logger.addHandler(utils.NullHandler())
+
+      if not self.result_logger.handlers:
+         self.result_logger.addHandler(logging.StreamHandler(sys.stdout))
+      if not self.runnable_logger.handlers:
+         self.runnable_logger.addHandler(logging.StreamHandler(sys.stderr))
  
 
    def add_runnable(self, runnable, output_results=True):
@@ -48,6 +51,7 @@ class ExtractionRunner(object):
    def enable_logging(self, result_log_path, runnable_log_path):
       """Causes the extraction runner to keep logs of what it does
       If a log file from the same day exists, it is used. If not, new logs files are created for the current day
+      If this method is not called, by default, info will be printed to stdout and stderr
 
       Args:
          result_log_path: String file path that indicates where to store the results log.
@@ -76,12 +80,14 @@ class ExtractionRunner(object):
       self.runnable_logger.addHandler(runnable_log_handler)
 
    def disable_logging(self):
+      """Disables logging to files. Instead, info will be printed to stdout and stderr
+      """
+
       self.result_logger.handlers = []
       self.runnable_logger.handlers = []
 
-      self.result_logger.addHandler(utils.NullHandler())
-      self.runnable_logger.addHandler(utils.NullHandler())
-
+      self.result_logger.addHandler(logging.StreamHandler(sys.stdout))
+      self.runnable_logger.addHandler(logging.StreamHandler(sys.stderr))
 
    def run(self, data, output_dir, **kwargs):
       """Runs the extractor (with all runnables previously added) on data
@@ -108,13 +114,10 @@ class ExtractionRunner(object):
       for runnable in self.runnables:
          dep_results = self._select_dependency_results(runnable.dependencies(), results)
 
-         try:
-            instance = runnable()
-            instance.run_name = run_name
-            instance.logger = logging.getLogger('runnables.{0}'.format(runnable.__name__))
-            result = instance.run(data, dep_results)
-         except RunnableError as err:
-            result = err
+         instance = runnable()
+         instance.run_name = run_name
+         instance.logger = logging.getLogger('runnables.{0}'.format(runnable.__name__))
+         result = instance.run(data, dep_results)
 
          results[runnable] = result
 
