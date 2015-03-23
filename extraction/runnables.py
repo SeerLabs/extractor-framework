@@ -1,4 +1,6 @@
 import collections
+import sys
+import traceback
 
 class Base(object):
    @staticmethod
@@ -44,7 +46,7 @@ class Base(object):
          return r
       except Exception as e:
          e_info = sys.exc_info()
-         self.log(traceback.format_exception(*e_info))
+         self.log(''.join(traceback.format_exception(*e_info)))
          return  RunnableError(str(e))
 
 class Filter(Base):

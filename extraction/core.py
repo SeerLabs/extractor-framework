@@ -65,7 +65,6 @@ class ExtractionRunner(object):
       result_log_path = os.path.abspath(os.path.expanduser(result_log_path))
       runnable_log_path = os.path.abspath(os.path.expanduser(runnable_log_path))
 
-
       if not os.path.exists(os.path.dirname(result_log_path)): os.makedirs(os.path.dirname(result_log_path))
       if not os.path.exists(os.path.dirname(runnable_log_path)): os.makedirs(os.path.dirname(runnable_log_path))
 
@@ -75,6 +74,9 @@ class ExtractionRunner(object):
       formatter = logging.Formatter('%(asctime)s: %(message)s')
       result_log_handler.setFormatter(formatter)
       runnable_log_handler.setFormatter(formatter)
+
+      self.result_logger.handlers = []
+      self.runnable_logger.handlers = []
 
       self.result_logger.addHandler(result_log_handler)
       self.runnable_logger.addHandler(runnable_log_handler)
