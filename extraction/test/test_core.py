@@ -56,7 +56,21 @@ class TestExtractionRunner(unittest.TestCase):
 
       xml = ET.parse(result_file_path).getroot()
       self.assertEqual(xml.text, 'file 1')
-      
+
+   def test_run_from_file_batch(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(SelfExtractor)
+      paths = [self.f1_path, self.f2_path, self.f3_path]
+      prefixes = ['1', '2', '3']
+      output_dirs = [self.results_dir] * 3
+
+      runner.run_from_file_batch(paths, output_dirs, file_prefixes=prefixes)
+      result_file_paths = [os.path.join(self.results_dir, '{0}SelfExtractor.xml'.format(i)) for i in prefixes]
+      file_content = ['file {0}'.format(i) for i in prefixes]
+      for path, content in zip(result_file_paths, file_content):
+         self.assertTrue(os.path.isfile(path))
+         xml = ET.parse(path).getroot()
+         self.assertEqual(xml.text, content)
 
    def test_run_batch(self):
       batch = ['test 0', 'test 1', 'test 2']

@@ -2,9 +2,31 @@ import glob
 import sys
 import os
 import logging
+import multiprocessing as mp
 import xml.etree.ElementTree as ET
+import copy_reg
+import types
 from extraction.runnables import *
 import extraction.utils as utils
+
+
+def _pickle_method(method):
+   func_name = method.im_func.__name__
+   obj = method.im_self
+   cls = method.im_class
+   return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+   for cls in cls.mro():
+      try:
+         func = cls.__dict__[func_name]
+      except KeyError:
+         pass
+      else:
+         break
+   return func.__get__(obj, cls)
+
+copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 class ExtractionRunner(object):
    def __init__(self):
@@ -106,35 +128,8 @@ class ExtractionRunner(object):
                If this argument isn't displayed, a random string will be used
 
       """
-      write_dep_errors = kwargs.get('write_dep_errors', False)
-      file_prefix = kwargs.get('file_prefix', '')
-      run_name = kwargs.get('run_name', utils.random_letters(8))
+      _real_run(self.runnables, self.runnable_props, data, output_dir, **kwargs)
 
-      self.result_logger.info('{0} started'.format(run_name))
-
-      results = {}
-      for runnable in self.runnables:
-         dep_results = self._select_dependency_results(runnable.dependencies(), results)
-
-         instance = runnable()
-         instance.run_name = run_name
-         instance.logger = logging.getLogger('runnables.{0}'.format(runnable.__name__))
-         result = instance.run(data, dep_results)
-
-         results[runnable] = result
-
-      output_dir = os.path.abspath(os.path.expanduser(output_dir))
-
-      if not os.path.exists(output_dir):
-         os.makedirs(output_dir)
-
-      any_errors = False
-      for runnable in results:
-         if self.runnable_props[runnable]['output_results']: 
-            result = results[runnable]
-            if isinstance(result, RunnableError): any_errors = True
-            self._output_result(runnable, result, output_dir, run_name, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
-      self.result_logger.info('{0} finished with {1}'.format(run_name, 'no errors' if not any_errors else 'errors'))
 
    def run_from_file(self, file_path, output_dir=None, **kwargs):
       """Runs the extractor on the file at file_path
@@ -167,47 +162,97 @@ class ExtractionRunner(object):
          self.run(data, os.path.join(output_dir, str(index)), run_name=run_name, **kwargs)
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
-   #TODO figure out what output_dir should be...
-   #def run_batch_from_glob(self, dir_glob, output_dir)
-      #for path in enumerate(glob.iglob(dir_glob)):
-         #self.run_from_file(path, pretty=pretty))
+   def run_from_file_batch(self, file_paths, output_dirs, **kwargs):
+      batch_id = utils.random_letters(10)
+      self.result_logger.info("Starting Batch {0} Run".format(batch_id))
 
-   def _select_dependency_results(self, dependencies, results):
-      # N^2 implementation right now, maybe this doesn't matter but could be improved if needed
-      dependency_results = {}
-      for DependencyClass in dependencies:
-         for ResultClass, result in results.items():
-            if issubclass(ResultClass, DependencyClass):
-               dependency_results[DependencyClass] = result
-               break
-         else:
-            raise LookupError('No runnable satisfies the requirement for a {0}'.format(DependencyClass.__name__))
+      pool = mp.Pool(4)
+      for i, (path, dir) in enumerate(zip(file_paths, output_dirs)):
+         args = (self.runnables, self.runnable_props, open(path, 'rb').read(), dir)
 
-      return dependency_results
+         kws = {'run_name': path}
+         if 'file_prefixes' in kwargs: kws['file_prefix'] = kwargs['file_prefixes'][i]
+         if 'file_prefix' in kwargs: kws['file_prefix'] = kwargs['file_prefix']
+         if 'write_dep_errors' in kwargs: kws['write_dep_errors'] = kwargs['write_dep_errors']
 
-   def _output_result(self, runnable, result, output_dir, run_name, file_prefix='', write_dep_errors=False):
-      if isinstance(result, RunnableError):
-         if isinstance(result, DependencyError) and not write_dep_errors:
-            return 
+         pool.apply_async(_real_run, args=args, kwds=kws)
 
-         self.result_logger.info('{0} error: {1}'.format(run_name, result.msg)) 
+      pool.close()
+      pool.join()
 
-         error = ET.Element('error')
-         error.text = result.msg
-         result = ET.ElementTree(error)
-         result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
-         result.write(result_path, encoding='UTF-8')
-      elif isinstance(result, ExtractorResult):
-         files_dict = result.files
-         xml_result = ET.ElementTree(result.xml_result)
+      self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
-         result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
+def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
+   result_logger = logging.getLogger('result')
 
-         xml_result.write(result_path, encoding='UTF-8')
+   write_dep_errors = kwargs.get('write_dep_errors', False)
+   file_prefix = kwargs.get('file_prefix', '')
+   run_name = kwargs.get('run_name', utils.random_letters(8))
 
-         if files_dict:
-            for file_name, file_data in files_dict.items():
-               file_name = file_prefix + file_name
-               f = open(os.path.join(output_dir, file_name), 'wb')
-               f.write(file_data)
-               f.close()
+   result_logger.info('{0} started'.format(run_name))
+
+   results = {}
+   for runnable in runnables:
+      dep_results = _select_dependency_results(runnable.dependencies(), results)
+
+      instance = runnable()
+      instance.run_name = run_name
+      instance.logger = logging.getLogger('runnables.{0}'.format(runnable.__name__))
+      result = instance.run(data, dep_results)
+
+      results[runnable] = result
+
+   output_dir = os.path.abspath(os.path.expanduser(output_dir))
+
+   if not os.path.exists(output_dir):
+      os.makedirs(output_dir)
+
+   any_errors = False
+   for runnable in results:
+      if runnable_props[runnable]['output_results']: 
+         result = results[runnable]
+         if isinstance(result, RunnableError): any_errors = True
+         _output_result(runnable, result, output_dir, run_name, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
+   result_logger.info('{0} finished with {1}'.format(run_name, 'no errors' if not any_errors else 'errors'))
+
+
+def _select_dependency_results(dependencies, results):
+   # N^2 implementation right now, maybe this doesn't matter but could be improved if needed
+   dependency_results = {}
+   for DependencyClass in dependencies:
+      for ResultClass, result in results.items():
+         if issubclass(ResultClass, DependencyClass):
+            dependency_results[DependencyClass] = result
+            break
+      else:
+         raise LookupError('No runnable satisfies the requirement for a {0}'.format(DependencyClass.__name__))
+
+   return dependency_results
+
+def _output_result(runnable, result, output_dir, run_name, file_prefix='', write_dep_errors=False):
+   logger = logging.getLogger('results')
+   if isinstance(result, RunnableError):
+      if isinstance(result, DependencyError) and not write_dep_errors:
+         return 
+
+      logger.info('{0} error: {1}'.format(run_name, result.msg)) 
+
+      error = ET.Element('error')
+      error.text = result.msg
+      result = ET.ElementTree(error)
+      result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
+      result.write(result_path, encoding='UTF-8')
+   elif isinstance(result, ExtractorResult):
+      files_dict = result.files
+      xml_result = ET.ElementTree(result.xml_result)
+
+      result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
+
+      xml_result.write(result_path, encoding='UTF-8')
+
+      if files_dict:
+         for file_name, file_data in files_dict.items():
+            file_name = file_prefix + file_name
+            f = open(os.path.join(output_dir, file_name), 'wb')
+            f.write(file_data)
+            f.close()
