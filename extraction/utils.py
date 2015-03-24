@@ -65,6 +65,9 @@ def temp_file(data, suffix=''):
 def random_letters(length):
    return ''.join(random.choice(string.letters) for i in range(length))
 
+def expand_path(path):
+   return os.path.abspath(os.path.expanduser(path))
+
 class NullHandler(logging.Handler):
    def emit(self, record):
       pass
