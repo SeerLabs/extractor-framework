@@ -60,7 +60,7 @@ extraction_runner.run(u'''Random data inputted with some emails bob@example.com
 523 And some more text with @ signs now and then. Meet you@home@2p.m.
       And some more stuff. howie009@yahoo.com
       jones@gmail.com fredie@emerson.retail.com
-123 bobbie@ist.psu.edu and that's all the text here.''', 'extraction/test/sample_output')
+123 bobbie@ist.psu.edu and that's all the text here.''', 'extraction/test/sample_output', run_name = 'Sample Data')
 
 
       

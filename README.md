@@ -147,12 +147,21 @@ runner.run_from_file('/my/file.pdf')                                 # results w
 runner.run_from_file('/my/file.pdf', output_dir='/dir/for/results')  # or specify a directory
 # You can specify a prefix for all result files
 runner.run_from_file('/my/file001.pdf', file_prefix = '001.')
-# Or, run on lots of data
-runner.run_from_batch(['data 0', 'data 1'], output_dir='/director/for/results')
-# Results are in /dir/for/results/0 and /dir/for/results/1
 
-# To come in the future!
-# runner.run_from_glob
+
+# You can run the extractor on a batch of data
+runner.run_from_batch(['data 0', 'data 1'], output_dirs=['/dir/for/results/1','/dir/for/results/2'])
+
+# You can also run the extractor on a batch of  files:
+files = ['/path/to/file0', '/path/to/file1', '/path/to/file2', '/path/to/file3']
+output_dirs = ['/path/to/results'] * len(files)
+prefixes = ['{0}_'.format(i) for i in range(0, len(files)]
+# Here, we store all results in the same directory but with different prefixes per file
+runner.run_from_file_batch(files, output_dirs, file_prefixes=prefixes)
+
+# When you run the extractor on a batch of data or a batch of files,
+# it parallelizes execution and should get done much faster! Yay! 
+# You just use it in your code like a normal synchronous call, which is easy, yay!
 ```
 
 ## Sample Framework Usage ##
