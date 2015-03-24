@@ -84,8 +84,8 @@ class ExtractionRunner(object):
             Path and day rotation is handled the same as with the results log
       """
 
-      result_log_path = os.path.abspath(os.path.expanduser(result_log_path))
-      runnable_log_path = os.path.abspath(os.path.expanduser(runnable_log_path))
+      result_log_path = utils.expand_path(result_log_path)
+      runnable_log_path = utils.expand_path(runnable_log_path)
 
       if not os.path.exists(os.path.dirname(result_log_path)): os.makedirs(os.path.dirname(result_log_path))
       if not os.path.exists(os.path.dirname(runnable_log_path)): os.makedirs(os.path.dirname(runnable_log_path))
@@ -148,6 +148,8 @@ class ExtractionRunner(object):
             file_prefix: A string to prepend to all filenames that get written to disk
 
       """
+
+      file_path = utils.expand_path(file_path)
 
       if not output_dir:
          output_dir = os.path.dirname(file_path)
