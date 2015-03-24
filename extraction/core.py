@@ -156,21 +156,52 @@ class ExtractionRunner(object):
 
       return self.run(open(file_path, 'rb').read(), output_dir, run_name=file_path, **kwargs)
 
-   def run_batch(self, list_of_data, output_dir, **kwargs):
+   def run_batch(self, list_of_data, output_dirs, **kwargs):
+      num_processes = kwargs.get('num_processes', mp.cpu_count())
       batch_id = utils.random_letters(10)
       self.result_logger.info("Starting Batch {0} Run".format(batch_id))
-      for index, data in enumerate(list_of_data):
-         run_name = 'Batch {0} Item {1}'.format(batch_id, index)
-         self.run(data, os.path.join(output_dir, str(index)), run_name=run_name, **kwargs)
+
+      pool = mp.Pool(num_processes)
+      for i, (data, dir) in enumerate(zip(list_of_data, output_dirs)):
+         run_name = 'Batch {0} Item {1}'.format(batch_id, i)
+         args = (self.runnables, self.runnable_props, data, dir)
+
+         kws = {'run_name': run_name}
+         if 'file_prefixes' in kwargs: kws['file_prefix'] = kwargs['file_prefixes'][i]
+         if 'file_prefix' in kwargs: kws['file_prefix'] = kwargs['file_prefix']
+         if 'write_dep_errors' in kwargs: kws['write_dep_errors'] = kwargs['write_dep_errors']
+
+         pool.apply_async(_real_run, args=args, kwds=kws)
+
+      pool.close()
+      pool.join()
+
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
    def run_from_file_batch(self, file_paths, output_dirs, **kwargs):
+      """Run the extractor on a batch of files
+
+      Args:
+         file_paths: A list of files to be processed
+         output_dirs: A list of directories for results (parallel to file_paths).
+            There must be one directory for each file in file_paths
+         **kwargs: Optional keyword arguments:
+            num_processes: Number of worker processes to start to process the files
+               If this isn't supplied, this will default to multiprocessing.cpu_count()
+            file_prefix: A prefix applied to each output file  
+            file_prefixes: A list of file prefixes, parallel to file_paths and output_dirs
+               Only specify file_prefix or file_prefixes, not both.
+            write_dep_errors: A Boolean. If True, extractors that fail because dependencies fail
+               will still write a short xml file with this error to disk. (Good for clarity)
+               If False, extractors with failing dependencies won't write anything to disk
+      """
       file_paths = list(map(utils.expand_path, file_paths))
+      num_processes = kwargs.get('num_processes', mp.cpu_count())
 
       batch_id = utils.random_letters(10)
       self.result_logger.info("Starting Batch {0} Run".format(batch_id))
 
-      pool = mp.Pool(4)
+      pool = mp.Pool(num_processes)
       for i, (path, dir) in enumerate(zip(file_paths, output_dirs)):
          args = (self.runnables, self.runnable_props, open(path, 'rb').read(), dir)
 

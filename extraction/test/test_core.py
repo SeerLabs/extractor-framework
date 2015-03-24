@@ -74,12 +74,14 @@ class TestExtractionRunner(unittest.TestCase):
 
    def test_run_batch(self):
       batch = ['test 0', 'test 1', 'test 2']
+      prefixes = ['1', '2', '3']
+      output_dirs = [self.results_dir] * 3
       runner = ExtractionRunner()
       runner.add_runnable(SelfExtractor)
-      runner.run_batch(batch, output_dir = self.results_dir)
+      runner.run_batch(batch, output_dirs, file_prefixes=prefixes)
 
-      for index, text in enumerate(batch):
-         result_file_path = os.path.join(self.results_dir, str(index), 'SelfExtractor.xml')
+      for prefix, text in zip(prefixes, batch):
+         result_file_path = os.path.join(self.results_dir, '{0}SelfExtractor.xml'.format(prefix))
          self.assertTrue(os.path.isfile(result_file_path))
          xml = ET.parse(result_file_path).getroot()
          self.assertEqual(xml.text, text)
