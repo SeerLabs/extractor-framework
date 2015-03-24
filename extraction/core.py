@@ -165,6 +165,8 @@ class ExtractionRunner(object):
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
    def run_from_file_batch(self, file_paths, output_dirs, **kwargs):
+      file_paths = list(map(utils.expand_path, file_paths))
+
       batch_id = utils.random_letters(10)
       self.result_logger.info("Starting Batch {0} Run".format(batch_id))
 
