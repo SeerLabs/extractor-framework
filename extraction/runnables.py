@@ -2,7 +2,7 @@ import collections
 import sys
 import traceback
 
-class Base(object):
+class Runnable(object):
    @staticmethod
    def dependencies():
       return []
@@ -49,7 +49,7 @@ class Base(object):
          self.log(''.join(traceback.format_exception(*e_info)))
          return  RunnableError('{0}: {1}'.format(e.__class__.__name__, e))
 
-class Filter(Base):
+class Filter(Runnable):
    def filter(self, data, dep_results):
       """
       Override this method in Filter subclasses to define custom filtering logic
@@ -71,7 +71,7 @@ class Filter(Base):
       """
       return False
 
-class Extractor(Base):
+class Extractor(Runnable):
    def extract(self, data, dep_results):
       """
       Override this method in Extractor subclasses to define custom extraction logic
