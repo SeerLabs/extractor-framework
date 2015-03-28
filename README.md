@@ -58,7 +58,8 @@ class TextExtractor(Extractor):
          files = { file_path_1: text_part_1, file_path_2: text_part_2 }
 
          # the extract method should return an ExtractionResult object
-         # it has a mandatory xml_result field which should be a xml.etree.ElementTree.element object
+         # it has an xml_result field which should be a xml.etree.ElementTree.element object
+         # xml_result may be None if there is no relevent xml result data to write
          # the files parameter is optional but if supplied is a dictionary such that dict[file_name] = file_contents
          # the xml result will be written to the output directory of the whole extraction process as well as the files in files
          result = ExtractionResult(xml_result=root, files=files)
