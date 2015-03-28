@@ -263,8 +263,9 @@ def _output_result(runnable, result, output_dir, run_name, file_prefix='', write
    elif isinstance(result, ExtractorResult):
       files_dict = result.files
 
-      xml_result = ET.ElementTree(result.xml_result)
-      xml_result.write(result_path, encoding='UTF-8')
+      if result.xml_result is not None:
+         xml_result = ET.ElementTree(result.xml_result)
+         xml_result.write(result_path, encoding='UTF-8')
 
       if files_dict:
          for file_name, file_data in files_dict.items():

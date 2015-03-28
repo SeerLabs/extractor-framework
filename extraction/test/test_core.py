@@ -214,6 +214,13 @@ class TestExtractionRunner(unittest.TestCase):
       self.assertTrue(os.path.isfile(result_file_path))
       self.assertEqual(ET.parse(result_file_path).getroot().text, 'pizza')
 
+   def test_no_extraction_result_works(self):
+      runner = ExtractionRunner()
+      runner.add_runnable(NothingExtractor)
+      runner.run('pizza', output_dir=self.results_dir)
+
+      self.assertFalse(os.listdir(self.results_dir))
+
    def test_logs_work(self):
       runner = ExtractionRunner()
       results_log_path = os.path.join(self.results_dir, 'results')

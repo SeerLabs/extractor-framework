@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 class NothingExtractor(Extractor):
    def extract(self, data, dep_results):
-      return ExtractorResult(ET.Element('result'))
+      return ExtractorResult(xml_result=None)
 
 class SelfExtractor(Extractor):
    def extract(self, data, dep_results):
