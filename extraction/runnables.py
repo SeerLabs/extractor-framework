@@ -3,6 +3,9 @@ import sys
 import traceback
 
 class Runnable(object):
+
+   result_file_name = None
+
    @staticmethod
    def dependencies():
       return []

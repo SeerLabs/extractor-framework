@@ -245,6 +245,11 @@ def _select_dependency_results(dependencies, results):
 
 def _output_result(runnable, result, output_dir, run_name, file_prefix='', write_dep_errors=False):
    logger = logging.getLogger('results')
+
+   result_file_name = file_prefix
+   result_file_name += runnable.result_file_name or (runnable.__name__ + '.xml')
+   result_path = os.path.join(output_dir, result_file_name)
+
    if isinstance(result, RunnableError):
       if isinstance(result, DependencyError) and not write_dep_errors:
          return 
@@ -253,15 +258,12 @@ def _output_result(runnable, result, output_dir, run_name, file_prefix='', write
 
       error = ET.Element('error')
       error.text = result.msg
-      result = ET.ElementTree(error)
-      result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
-      result.write(result_path, encoding='UTF-8')
+      xml_result = ET.ElementTree(error)
+      xml_result.write(result_path, encoding='UTF-8')
    elif isinstance(result, ExtractorResult):
       files_dict = result.files
+
       xml_result = ET.ElementTree(result.xml_result)
-
-      result_path = os.path.join(output_dir,'{0}{1}.xml'.format(file_prefix, runnable.__name__))
-
       xml_result.write(result_path, encoding='UTF-8')
 
       if files_dict:

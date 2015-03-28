@@ -19,6 +19,14 @@ class SelfLogExtractor(Extractor):
       ele.text = data
       return ExtractorResult(ele)
 
+class SelfChangeNameExtractor(Extractor):
+   result_file_name = 'name.extension'
+   def extract(self, data, dep_results):
+      ele = ET.Element('result')
+      ele.text = data
+      return ExtractorResult(ele)
+      
+
 class ErrorExtractor(Extractor):
    def extract(self, data, dep_results):
       raise RunnableError('I always Error!')
