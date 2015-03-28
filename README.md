@@ -31,10 +31,9 @@ import extraction.utils as utils
 # extractors must inherit from Extractor
 class TextExtractor(Extractor):
    # if the extractor depends on the results of other extractors or filters
-   # it must override the static dependencies method
-   @staticmethod
-   def dependencies():
-      return [EnglishFilter]
+   # it must define a dependencies iterable
+   # it is recommended to use a frozenset
+   dependencies = frozenset([EnglishFilter])
 
    # extractors must override the extract method
    # this is where the main logic goes
@@ -105,9 +104,7 @@ class GrepEmailExtractor(EmailExtractor):
 # This extractor doesn't care what specfic EmailExtractor is run before it
 # as long as one of them is
 class WebdomainExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [EmailExtractor]
+   dependencies = frozenset([EmailExtractor])
 
    def extract(self, data, dep_results):
       ...

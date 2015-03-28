@@ -32,34 +32,29 @@ class ErrorExtractor(Extractor):
       raise RunnableError('I always Error!')
 
 class DepsOnErrorExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [ErrorExtractor]
+   dependencies = frozenset([ErrorExtractor])
+
    def extract(self, data, dep_results):
       ele = ET.Element('result')
       ele.text = data
       return ExtractorResult(ele)
 
 class DepsOnErrorExtractor2(Extractor):
-   @staticmethod
-   def dependencies():
-      return [DepsOnErrorExtractor]
+   dependencies = frozenset([DepsOnErrorExtractor])
    def extract(self, data, dep_results):
       ele = ET.Element('result')
       ele.text = data
       return ExtractorResult(ele)
 
 class FailingDepsExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [filters.FailFilter]
+   dependencies = frozenset([filters.FailFilter])
+
    def extract(self, data, dep_results):
       return RunnableError('This extractor should never run!')
 
 class PassingDepsExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [filters.PassFilter]
+   dependencies = frozenset([filters.PassFilter])
+
    def extract(self, data, dep_results):
       ele = ET.Element('result')
       ele.text = data
@@ -78,9 +73,7 @@ class ImplTestFileExtractor(TestFileExtractor):
       return ExtractorResult(ele, files=files)
 
 class DepsOnTestFileExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [TestFileExtractor]
+   dependencies = frozenset([TestFileExtractor])
 
    def extract(self, data, dep_results):
       return dep_results[TestFileExtractor]

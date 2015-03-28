@@ -207,7 +207,7 @@ def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
 
    results = {}
    for runnable in runnables:
-      dep_results = _select_dependency_results(runnable.dependencies(), results)
+      dep_results = _select_dependency_results(runnable.dependencies, results)
 
       instance = runnable()
       instance.run_name = run_name

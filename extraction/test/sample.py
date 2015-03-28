@@ -16,9 +16,7 @@ class HasNumbersFilter(Filter):
       return bool(success)
 
 class EmailExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [HasNumbersFilter]
+   dependencies = frozenset([HasNumbersFilter])
 
    def extract(self, data, deps):
       emails = re.findall(r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b',
@@ -32,9 +30,7 @@ class EmailExtractor(Extractor):
       return ExtractorResult(xml_result=root)
 
 class LinesStartWithNumberExtractor(Extractor):
-   @staticmethod
-   def dependencies():
-      return [HasNumbersFilter]
+   dependencies = frozenset([HasNumbersFilter])
 
    def extract(self, data, deps):
       try:

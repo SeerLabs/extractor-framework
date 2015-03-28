@@ -4,17 +4,15 @@ import traceback
 
 class Runnable(object):
 
+   # runnable properties
    result_file_name = None
-
-   @staticmethod
-   def dependencies():
-      return []
+   dependencies = frozenset()
 
    def __init__(self):
       pass
 
    def check_dep_errors(self, dep_results):
-      deps = self.__class__.dependencies()
+      deps = self.__class__.dependencies
       filter_deps = [e for e in deps if issubclass(e, Filter)]
       extractor_deps = [e for e in deps if issubclass(e, Extractor)]
 

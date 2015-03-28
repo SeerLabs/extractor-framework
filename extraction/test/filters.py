@@ -6,9 +6,7 @@ class FilterWithoutDeps(Filter):
       return True
 
 class FilterWithDeps(Filter):
-   @staticmethod
-   def dependencies():
-      return [FilterWithoutDeps]
+   dependencies = frozenset([FilterWithoutDeps])
 
    def filter(self, data, dep_results):
       return True

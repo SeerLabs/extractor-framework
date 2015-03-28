@@ -11,9 +11,9 @@ class TestRunnables(unittest.TestCase):
 
    def test_defining_dependencies(self):
       self.assertTrue(hasattr(filters.FilterWithoutDeps, 'dependencies'))
-      self.assertEqual(len(filters.FilterWithoutDeps.dependencies()), 0)
-      self.assertEqual(len(filters.FilterWithDeps.dependencies()), 1)
-      self.assertTrue(filters.FilterWithoutDeps in filters.FilterWithDeps.dependencies())
+      self.assertEqual(len(filters.FilterWithoutDeps.dependencies), 0)
+      self.assertEqual(len(filters.FilterWithDeps.dependencies), 1)
+      self.assertTrue(filters.FilterWithoutDeps in filters.FilterWithDeps.dependencies)
 
       
 
