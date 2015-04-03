@@ -6,6 +6,7 @@ import multiprocessing as mp
 import xml.etree.ElementTree as ET
 from extraction.runnables import *
 import extraction.utils as utils
+import extraction.log
 
 class ExtractionRunner(object):
    def __init__(self):
@@ -69,8 +70,8 @@ class ExtractionRunner(object):
       if not os.path.exists(os.path.dirname(result_log_path)): os.makedirs(os.path.dirname(result_log_path))
       if not os.path.exists(os.path.dirname(runnable_log_path)): os.makedirs(os.path.dirname(runnable_log_path))
 
-      result_log_handler = utils.ParallelTimedRotatingFileHandler(result_log_path, when='D', delay=True)
-      runnable_log_handler = utils.ParallelTimedRotatingFileHandler(runnable_log_path, when='D', delay=True)
+      result_log_handler = extraction.log.ParallelTimedRotatingFileHandler(result_log_path, when='D', delay=True)
+      runnable_log_handler = extraction.log.ParallelTimedRotatingFileHandler(runnable_log_path, when='D', delay=True)
 
       formatter = logging.Formatter('%(asctime)s: %(message)s')
       result_log_handler.setFormatter(formatter)
