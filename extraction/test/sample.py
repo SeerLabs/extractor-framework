@@ -1,22 +1,18 @@
-'''This module contains a sample use case for the library.
-
-It's just a demo, so for example, the EmailExtractor is quite simplistic.
-'''
-
+import re
+import xml.etree.ElementTree as ET
+import subprocess32 as subproces
+import extraction.utils as utils
 from extraction.core import ExtractionRunner
 from extraction.runnables import Filter, Extractor, ExtractorResult
-import xml.etree.ElementTree as ET
-import extraction.utils as utils
-import re
-import subprocess32 as subproces
 
+# Define extractors and filters
 class HasNumbersFilter(Filter):
    def filter(self, data, deps):
       success = re.search(r'[0-9]', data, re.UNICODE)
       return bool(success)
 
 class EmailExtractor(Extractor):
-   dependencies = frozenset([HasNumbersFilter])
+   result_file_name = 'emails.xml'
 
    def extract(self, data, deps):
       emails = re.findall(r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b',
@@ -47,16 +43,20 @@ class LinesStartWithNumberExtractor(Extractor):
 
       return ExtractorResult(xml_result=root)
 
+
+# Set up and run extraction
 extraction_runner = ExtractionRunner()
 extraction_runner.add_runnable(HasNumbersFilter)
 extraction_runner.add_runnable(EmailExtractor)
 extraction_runner.add_runnable(LinesStartWithNumberExtractor)
 
-extraction_runner.run(u'''Random data inputted with some emails bob@example.com
-523 And some more text with @ signs now and then. Meet you@home@2p.m.
-      And some more stuff. howie009@yahoo.com
-      jones@gmail.com fredie@emerson.retail.com
-123 bobbie@ist.psu.edu and that's all the text here.''', 'extraction/test/sample_output', run_name = 'Sample Data')
+extraction_runner.run(u'''Random data that contains some emails bob@example.com
+Test lines with some @ signs now and then. Meet you@home@2p.m.
+Line with another email embedded howie009@yahoo.com in the line.
+jones@gmail.com fredie@emerson.retail.com
+123 Some lines even start with numbers
+Some lines don't start with numbers
+004 The final line in the test data''', 'extraction/test/sample_output', run_name = 'Sample Data')
 
 
       
