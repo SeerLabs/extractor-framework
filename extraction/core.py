@@ -228,7 +228,7 @@ def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
          result = results[runnable]
          if isinstance(result, RunnableError): any_errors = True
          _output_result(runnable, result, output_dir, run_name, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
-   result_logger.info('{0} finished with {1}'.format(run_name, 'no errors' if not any_errors else 'errors'))
+   result_logger.info('{0} finished {1}'.format(run_name, '[SUCCESS]' if not any_errors else '[WITH ERRORS]'))
 
 
 def _select_dependency_results(dependencies, results):

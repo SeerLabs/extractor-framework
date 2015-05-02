@@ -232,7 +232,7 @@ class TestExtractionRunner(unittest.TestCase):
 
       results_log = glob.glob(results_log_path + "*.log")[0]
       log_data = open(results_log, 'r').read()
-      self.assertTrue('no errors' in log_data)
+      self.assertTrue('[SUCCESS]' in log_data)
       self.assertTrue('RUN!' in log_data)
 
       runnables_log = glob.glob(runnables_log_path + "*.log")[0]
