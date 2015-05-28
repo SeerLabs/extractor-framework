@@ -182,6 +182,7 @@ class ExtractionRunner(object):
       self.result_logger.info("Starting Batch {0} Run with {1} processes".format(batch_id, num_processes))
 
       pool = mp.Pool(num_processes)
+      err_check = []
       for i, (path, dir) in enumerate(zip(file_paths, output_dirs)):
          args = (self.runnables, self.runnable_props, open(path, 'rb').read(), dir)
 
@@ -190,10 +191,14 @@ class ExtractionRunner(object):
          if 'file_prefix' in kwargs: kws['file_prefix'] = kwargs['file_prefix']
          if 'write_dep_errors' in kwargs: kws['write_dep_errors'] = kwargs['write_dep_errors']
 
-         pool.apply_async(_real_run, args=args, kwds=kws)
+         err_check.append(pool.apply_async(_real_run, args=args, kwds=kws))
 
       pool.close()
       pool.join()
+
+      # if any process raised an uncaught exception, we will see it now
+      for e in err_check:
+         e.get()
 
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
