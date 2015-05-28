@@ -245,7 +245,7 @@ def _select_dependency_results(dependencies, results):
    return dependency_results
 
 def _output_result(runnable, result, output_dir, run_name, file_prefix='', write_dep_errors=False):
-   logger = logging.getLogger('results')
+   logger = logging.getLogger('result')
 
    result_file_name = file_prefix
    result_file_name += runnable.result_file_name or (runnable.__name__ + '.xml')
@@ -255,7 +255,7 @@ def _output_result(runnable, result, output_dir, run_name, file_prefix='', write
       if isinstance(result, DependencyError) and not write_dep_errors:
          return 
 
-      logger.info('{0} error: {1}'.format(run_name, result.msg)) 
+      logger.info('{0} {1} ERROR: {2}'.format(run_name, runnable.__name__, result.msg)) 
 
       error = ET.Element('error')
       error.text = result.msg
