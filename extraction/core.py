@@ -200,7 +200,7 @@ class ExtractionRunner(object):
 def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
    result_logger = logging.getLogger('result')
 
-   write_dep_errors = kwargs.get('write_dep_errors', False)
+   write_dep_errors = kwargs.get('write_dep_errors', True)
    file_prefix = kwargs.get('file_prefix', '')
    run_name = kwargs.get('run_name', utils.random_letters(8))
 
@@ -252,10 +252,10 @@ def _output_result(runnable, result, output_dir, run_name, file_prefix='', write
    result_path = os.path.join(output_dir, result_file_name)
 
    if isinstance(result, RunnableError):
+      logger.info('{0} {1} ERROR: {2}'.format(run_name, runnable.__name__, result.msg)) 
+
       if isinstance(result, DependencyError) and not write_dep_errors:
          return 
-
-      logger.info('{0} {1} ERROR: {2}'.format(run_name, runnable.__name__, result.msg)) 
 
       error = ET.Element('error')
       error.text = result.msg
