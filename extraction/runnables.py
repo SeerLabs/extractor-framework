@@ -21,7 +21,7 @@ class Runnable(object):
          if isinstance(result, RunnableError):
             return DependencyError('Did not run because dependency filter %s errored' % filter.__name__)
          elif not result:
-            return DependencyError('Did not run because dependency filter %s failed' % filter.__name__)
+            return DependencyError('Did not run because dependency filter %s returned false' % filter.__name__)
 
       for extractor in extractor_deps:
          result = dep_results[extractor]
