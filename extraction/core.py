@@ -202,7 +202,7 @@ class ExtractionRunner(object):
 
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
-def run_from_file_batch_no_output(self, file_paths, **kwargs):
+def run_from_file_batch_no_output(self, file_path, **kwargs):
    """Run the extractor on a batch of files without writing output to files
 
       Args:
@@ -219,32 +219,15 @@ def run_from_file_batch_no_output(self, file_paths, **kwargs):
                will still write a short xml file with this error to disk. (Good for clarity)
                If False, extractors with failing dependencies won't write anything to disk
       """
-      file_paths = list(map(utils.expand_path, file_paths))
-      num_processes = kwargs.get('num_processes', mp.cpu_count())
+      file_paths = list(map(utils.expand_path, file_path))
 
       batch_id = utils.random_letters(10)
       self.result_logger.info("Starting Batch {0} Run with {1} processes".format(batch_id, num_processes))
 
-      pool = mp.Pool(num_processes)
-      err_check = []
       for i, (path) in enumerate(zip(file_paths)):
-         args = (self.runnables, self.runnable_props, open(path, 'rb').read())
-
-         kws = {'run_name': path}
-         if 'file_prefixes' in kwargs: kws['file_prefix'] = kwargs['file_prefixes'][i]
-         if 'file_prefix' in kwargs: kws['file_prefix'] = kwargs['file_prefix']
-         if 'write_dep_errors' in kwargs: kws['write_dep_errors'] = kwargs['write_dep_errors']
-
-         err_check.append(pool.apply_async(_real_run_no_output, args=args, kwds=kws))
-
-      pool.close()
-      pool.join()
-
-      # if any process raised an uncaught exception, we will see it now
-      for e in err_check:
-         e.get()
-
-      self.result_logger.info("Finished Batch {0} Run".format(batch_id))
+         result = _real_run_no_output(self.runnables, self.runnable_props, open(path, 'rb').read())
+         self.result_logger.info("Finished Batch {0} Run".format(batch_id))
+         return result
 
 def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
    result_logger = logging.getLogger('result')
