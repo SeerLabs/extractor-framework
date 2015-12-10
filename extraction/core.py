@@ -207,8 +207,6 @@ def run_from_file_batch_no_output(self, file_path, **kwargs):
 
       Args:
          file_paths: A list of files to be processed
-         output_dirs: A list of directories for results (parallel to file_paths).
-            There must be one directory for each file in file_paths
          **kwargs: Optional keyword arguments:
             num_processes: Number of worker processes to start to process the files
                If this isn't supplied, this will default to multiprocessing.cpu_count()
