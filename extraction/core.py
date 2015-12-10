@@ -202,6 +202,50 @@ class ExtractionRunner(object):
 
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
+def run_from_file_batch_no_output(self, file_paths, **kwargs):
+   """Run the extractor on a batch of files without writing output to files
+
+      Args:
+         file_paths: A list of files to be processed
+         output_dirs: A list of directories for results (parallel to file_paths).
+            There must be one directory for each file in file_paths
+         **kwargs: Optional keyword arguments:
+            num_processes: Number of worker processes to start to process the files
+               If this isn't supplied, this will default to multiprocessing.cpu_count()
+            file_prefix: A prefix applied to each output file  
+            file_prefixes: A list of file prefixes, parallel to file_paths and output_dirs
+               Only specify file_prefix or file_prefixes, not both.
+            write_dep_errors: A Boolean. If True, extractors that fail because dependencies fail
+               will still write a short xml file with this error to disk. (Good for clarity)
+               If False, extractors with failing dependencies won't write anything to disk
+      """
+      file_paths = list(map(utils.expand_path, file_paths))
+      num_processes = kwargs.get('num_processes', mp.cpu_count())
+
+      batch_id = utils.random_letters(10)
+      self.result_logger.info("Starting Batch {0} Run with {1} processes".format(batch_id, num_processes))
+
+      pool = mp.Pool(num_processes)
+      err_check = []
+      for i, (path) in enumerate(zip(file_paths)):
+         args = (self.runnables, self.runnable_props, open(path, 'rb').read())
+
+         kws = {'run_name': path}
+         if 'file_prefixes' in kwargs: kws['file_prefix'] = kwargs['file_prefixes'][i]
+         if 'file_prefix' in kwargs: kws['file_prefix'] = kwargs['file_prefix']
+         if 'write_dep_errors' in kwargs: kws['write_dep_errors'] = kwargs['write_dep_errors']
+
+         err_check.append(pool.apply_async(_real_run_no_output, args=args, kwds=kws))
+
+      pool.close()
+      pool.join()
+
+      # if any process raised an uncaught exception, we will see it now
+      for e in err_check:
+         e.get()
+
+      self.result_logger.info("Finished Batch {0} Run".format(batch_id))
+
 def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
    result_logger = logging.getLogger('result')
 
@@ -234,6 +278,40 @@ def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
          if isinstance(result, RunnableError): any_errors = True
          _output_result(runnable, result, output_dir, run_name, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
    result_logger.info('{0} finished {1}'.format(run_name, '[SUCCESS]' if not any_errors else '[WITH ERRORS]'))
+
+def _real_run_no_output(runnables, runnable_props, data, **kwargs):
+   result_logger = logging.getLogger('result')
+
+   write_dep_errors = kwargs.get('write_dep_errors', True)
+   file_prefix = kwargs.get('file_prefix', '')
+   run_name = kwargs.get('run_name', utils.random_letters(8))
+
+   result_logger.info('{0} started'.format(run_name))
+
+   results = {}
+   for runnable in runnables:
+      dep_results = _select_dependency_results(runnable.dependencies, results)
+
+      instance = runnable()
+      instance.run_name = run_name
+      instance.logger = logging.getLogger('runnables.{0}'.format(runnable.__name__))
+      result = instance.run(data, dep_results)
+
+      results[runnable] = result
+
+   output_dir = os.path.abspath(os.path.expanduser(output_dir))
+
+   if not os.path.exists(output_dir):
+      os.makedirs(output_dir)
+
+   any_errors = False
+   for runnable in results:
+      if runnable_props[runnable]['output_results']: 
+         result = results[runnable]
+         if isinstance(result, RunnableError): any_errors = True
+         #_output_result(runnable, result, output_dir, run_name, file_prefix=file_prefix, write_dep_errors=write_dep_errors)
+   result_logger.info('{0} finished {1}'.format(run_name, '[SUCCESS]' if not any_errors else '[WITH ERRORS]'))
+   return results
 
 
 def _select_dependency_results(dependencies, results):
