@@ -217,15 +217,12 @@ class ExtractionRunner(object):
                   will still write a short xml file with this error to disk. (Good for clarity)
                   If False, extractors with failing dependencies won't write anything to disk
       """
-      file_paths = list(map(utils.expand_path, file_path))
 
       batch_id = utils.random_letters(10)
       #self.result_logger.info("Starting Batch {0} Run with {1} processes".format(batch_id, num_processes))
-
-      for i, (path) in enumerate(zip(file_paths)):
-         result = _real_run_no_output(self.runnables, self.runnable_props, open(path, 'rb').read())
-         self.result_logger.info("Finished Batch {0} Run".format(batch_id))
-         return result
+      result = _real_run_no_output(self.runnables, self.runnable_props, open(file_path, 'rb').read())
+      self.result_logger.info("Finished Batch {0} Run".format(batch_id))
+      return result
 
 def _real_run(runnables, runnable_props, data, output_dir, **kwargs):
    result_logger = logging.getLogger('result')
