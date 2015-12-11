@@ -277,9 +277,6 @@ def _real_run_no_output(runnables, runnable_props, data, **kwargs):
 
       results[runnable] = result
 
-   if not os.path.exists(output_dir):
-      os.makedirs(output_dir)
-
    any_errors = False
    for runnable in results:
       if runnable_props[runnable]['output_results']: 
