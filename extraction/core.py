@@ -202,20 +202,20 @@ class ExtractionRunner(object):
 
       self.result_logger.info("Finished Batch {0} Run".format(batch_id))
 
-def run_from_file_batch_no_output(self, file_path, **kwargs):
-   """Run the extractor on a batch of files without writing output to files
+   def run_from_file_batch_no_output(self, file_path, **kwargs):
+      """Run the extractor on a batch of files without writing output to files
 
-      Args:
-         file_paths: A list of files to be processed
-         **kwargs: Optional keyword arguments:
-            num_processes: Number of worker processes to start to process the files
-               If this isn't supplied, this will default to multiprocessing.cpu_count()
-            file_prefix: A prefix applied to each output file  
-            file_prefixes: A list of file prefixes, parallel to file_paths and output_dirs
-               Only specify file_prefix or file_prefixes, not both.
-            write_dep_errors: A Boolean. If True, extractors that fail because dependencies fail
-               will still write a short xml file with this error to disk. (Good for clarity)
-               If False, extractors with failing dependencies won't write anything to disk
+         Args:
+            file_paths: A list of files to be processed
+            **kwargs: Optional keyword arguments:
+               num_processes: Number of worker processes to start to process the files
+                  If this isn't supplied, this will default to multiprocessing.cpu_count()
+               file_prefix: A prefix applied to each output file  
+               file_prefixes: A list of file prefixes, parallel to file_paths and output_dirs
+                  Only specify file_prefix or file_prefixes, not both.
+               write_dep_errors: A Boolean. If True, extractors that fail because dependencies fail
+                  will still write a short xml file with this error to disk. (Good for clarity)
+                  If False, extractors with failing dependencies won't write anything to disk
       """
       file_paths = list(map(utils.expand_path, file_path))
 
