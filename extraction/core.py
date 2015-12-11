@@ -277,8 +277,6 @@ def _real_run_no_output(runnables, runnable_props, data, **kwargs):
 
       results[runnable] = result
 
-   output_dir = os.path.abspath(os.path.expanduser(output_dir))
-
    if not os.path.exists(output_dir):
       os.makedirs(output_dir)
 
