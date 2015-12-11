@@ -179,7 +179,7 @@ class ExtractionRunner(object):
       num_processes = kwargs.get('num_processes', mp.cpu_count())
 
       batch_id = utils.random_letters(10)
-      self.result_logger.info("Starting Batch {0} Run with {1} processes".format(batch_id, num_processes))
+      #self.result_logger.info("Starting Batch {0} Run with {1} processes".format(batch_id, num_processes))
 
       pool = mp.Pool(num_processes)
       err_check = []
